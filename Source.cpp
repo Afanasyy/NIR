@@ -11,6 +11,9 @@
 
 using namespace std;
 
+map<pair<float, float>, int>const_count;
+
+
 class House {
 public:
     House(const int& children, const map<pair<float, float>, int>& dis, const pair<float, float> cord, const map<pair<float, float>, float>& ratio_dis, const int& id) {
@@ -40,6 +43,9 @@ public:
         return m;
     }
     float getDifference(const pair<float, float>& school_m, const pair<float, float>& school_M) {
+        return abs(dis[school_m] - dis[school_M]);
+    }
+    float getDifference_r(const pair<float, float>& school_m, const pair<float, float>& school_M) {
         return abs(ratio_dis[school_m] - ratio_dis[school_M]);
     }
     int getID() {
@@ -136,7 +142,7 @@ void sorting(const pair<float, float>& school_m, const pair<float, float>& schoo
     (pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>& l, pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>& r)->bool
         {
             int id_1 = l.second, id_2 = r.second;
-            float dif_1 = houses[id_1].first.getDifference(school_m, school_M), dif_2 = houses[id_2].first.getDifference(school_m, school_M);
+            float dif_1 = houses[id_1].first.getDifference_r(school_m, school_M), dif_2 = houses[id_2].first.getDifference_r(school_m, school_M);
             return dif_1 > dif_2;
         });
 }
@@ -167,7 +173,7 @@ int calcCountClasses(const int& s) {
     return ans[mmin.first];
 }
 
-pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>> option_1(const vector<pair<float, float>>& cord_schools, const vector<pair<float, float>>& cord_houses, vector<pair<House, int>>& houses) {
+pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>> solution_1(map<pair<float, float>, int>& count_cl, map<pair<float, float>, int>& ef, const vector<pair<float, float>>& cord_schools, const vector<pair<float, float>>& cord_houses, vector<pair<House, int>>& houses) {
     map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
     //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
     map<pair<float, float>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
@@ -182,21 +188,30 @@ pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pai
         s += house.first.getChildren();
     }
 
-    auto count = calcCountClasses(s);
-    int min_c = floor(double(count) / count_class.size());
-    int remains = count - min_c * count_class.size();//остаток
-    for (auto& it : count_class) it.second += min_c;
-    vector<int>mem;
-    while (remains != 0) {
-        int tmp = rand() % count_class.size();
-        for (auto it : mem)
-            if (it == tmp) continue;
-        mem.push_back(tmp);
-        auto it = count_class.begin();
-        advance(it, tmp);
-        it->second++;
-        --remains;
+    if (const_count.empty()) {
+        auto count = calcCountClasses(s);
+        int min_c = floor(double(count) / count_class.size());
+        int remains = count - min_c * count_class.size();//остаток
+        for (auto& it : count_class) it.second += min_c;
+        vector<int>mem;
+        while (remains != 0) {
+            int tmp = rand() % count_class.size();
+            for (auto it : mem)
+                if (it == tmp) continue;
+            mem.push_back(tmp);
+            auto it = count_class.begin();
+            advance(it, tmp);
+            it->second++;
+            --remains;
+        }
+        const_count = count_class;
     }
+    else 
+        count_class = const_count;
+    
+    auto EF = calcEf(A, s_A);
+    ef = EF;
+    count_cl = count_class;
 
     B = A;
     s_B = s_A;
@@ -210,6 +225,7 @@ pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pai
         int* ptr = &(B[sch][h.first].first.first.second.second);
         s_B[sch] -= *ptr;
         s_B[h.second] += *ptr;
+        B[sch][h.first].first.first.second.first = houses[B[sch][h.first].second].first.getDisToSch(h.second);
         B[sch][h.first].first.second.push_back(sch);
         B[h.second].push_back(B[sch][h.first]);
         B[sch].erase(B[sch].begin() + h.first);
@@ -219,18 +235,26 @@ pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pai
 }
 
 void getMin_Max(const map<pair<float, float>, int>& s_B, pair<pair<float, float>, int>& min_S, pair<pair<float, float>, int>& max_S, map<pair<float, float>, int>& count_classes) {
-    pair<pair<float, float>, int> min, max;
+    pair<pair<float, float>, int> min, min_2, max;
     min.second = INT_MIN;
     max.second = INT_MIN;
+    min_2.second = INT_MAX;
     for (const auto& it : s_B) {
-        if (it.second - count_classes[it.first] * 28 > max.second) max = { it.first,  it.second - count_classes[it.first] * 28 };
-        if (count_classes[it.first] * 25 - it.second > min.second) min = { it.first,  count_classes[it.first] * 25 - it.second };
+        if (it.second - count_classes[it.first] * 28 > max.second)
+            max = { it.first,  it.second - count_classes[it.first] * 28 };
+        if (count_classes[it.first] * 25 - it.second > min.second)
+            min = { it.first,  count_classes[it.first] * 25 - it.second };
+        if (it.second - count_classes[it.first] * 25 < min_2.second)
+            min_2 = { it.first,  count_classes[it.first] * 25 - it.second };
     }
-    min_S = min;// min
+    if (min.second != INT_MIN)
+        min_S = min;// min
+    else
+        min_S = min_2;
     max_S = max;// max
 }
 
-pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>> option_2(const vector<pair<float, float>>& cord_schools, const vector<pair<float, float>>& cord_houses, vector<pair<House, int>>& houses) {
+pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>> solution_2(map<pair<float, float>, int>& count_cl, map<pair<float, float>, int>& ef, const vector<pair<float, float>>& cord_schools, const vector<pair<float, float>>& cord_houses, vector<pair<House, int>>& houses) {
     map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
     //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
     map<pair<float, float>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
@@ -245,22 +269,31 @@ pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pai
         s += house.first.getChildren();
     }
 
-    auto count = calcCountClasses(s);
-    int min_c = floor(double(count) / count_class.size());
-    int remains = count - min_c * count_class.size();//остаток
-    for (auto& it : count_class) it.second += min_c;
-    vector<int>mem;
-    while (remains != 0) {
-        int tmp = rand() % count_class.size();
-        for (auto it : mem)
-            if (it == tmp) continue;
-        mem.push_back(tmp);
-        auto it = count_class.begin();
-        advance(it, tmp);
-        it->second++;
-        --remains;
+    if (const_count.empty()) {
+        auto count = calcCountClasses(s);
+        int min_c = floor(double(count) / count_class.size());
+        int remains = count - min_c * count_class.size();//остаток
+        for (auto& it : count_class) it.second += min_c;
+        vector<int>mem;
+        while (remains != 0) {
+            int tmp = rand() % count_class.size();
+            for (auto it : mem)
+                if (it == tmp) continue;
+            mem.push_back(tmp);
+            auto it = count_class.begin();
+            advance(it, tmp);
+            it->second++;
+            --remains;
+        }
+        const_count = count_class;
     }
-    auto ttttt = calcEf(A, s_A);
+    else
+        count_class = const_count;
+
+    auto EF = calcEf(A, s_A);
+    ef = EF;
+    count_cl = count_class;
+
     B = A;
     s_B = s_A;
     pair<pair<float, float>, int>min_S, max_S;
@@ -272,42 +305,21 @@ pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pai
     for (;; ++ttt) {
         getMin_Max(s_B, min_S, max_S, count_class);
         if (max_S.second == INT_MIN) break;
-        if (min_S.second == INT_MIN) {
-            pair<int, pair<float, float>>min;
-            min.second.second = INT_MAX;
-            int count = 0;
-            for (auto it2 : B[max_S.first]) {
-                int current = it2.first.first.second.first;
-                auto dis = houses[it2.second].first.getDis();
-                pair<pair<float, float>, int>m = { {0,0},INT_MAX };
-                for (auto it3 : dis)
-                    if (m.second > abs(current - it3.second) && current != it3.second && foo(it2.first.second, it3.first)) m = { it3.first,abs(current - it3.second) }, ++ttt;
-                if (min.second.second > m.second) min = { count, m.first };
-                ++count;
-            }
-            int* ptr = &(B[max_S.first][min.first].first.first.second.second);
-            s_B[max_S.first] -= *ptr;
-            s_B[min.second] += *ptr;
-            B[max_S.first][min.first].first.second.push_back(max_S.first);
-            B[min.second].push_back(B[max_S.first][min.first]);
-            B[max_S.first].erase(B[max_S.first].begin() + min.first);
-        }
-        else {
-            sorting(min_S.first, max_S.first, B, houses);
-            auto it = --B[max_S.first].end();
-            int* ptr = &((*it).first.first.second.second);
-            if ((min(abs(s_B[min_S.first] - 25 * count_class[min_S.first]), abs(s_B[min_S.first] - 28 * count_class[min_S.first])) + min(abs(s_B[max_S.first] - 25 * count_class[max_S.first]), abs(s_B[max_S.first] - 28 * count_class[max_S.first]))) < (min(abs(s_B[min_S.first] + *ptr - 25 * count_class[min_S.first]), abs(s_B[min_S.first] + *ptr - 28 * count_class[min_S.first])) + min(abs(s_B[max_S.first] - *ptr - 25 * count_class[max_S.first]), abs(s_B[max_S.first] - *ptr - 28 * count_class[max_S.first])))) break;
-            s_B[max_S.first] -= *ptr;
-            s_B[min_S.first] += *ptr;
-            B[min_S.first].push_back(*it);
-            B[max_S.first].pop_back();
-        }
+        sorting(min_S.first, max_S.first, B, houses);
+        auto it = --B[max_S.first].end();
+        int* ptr = &((*it).first.first.second.second);
+        it->first.first.second.first = houses[it->second].first.getDisToSch(min_S.first);
+        if ((min(abs(s_B[min_S.first] - 25 * count_class[min_S.first]), abs(s_B[min_S.first] - 28 * count_class[min_S.first])) + min(abs(s_B[max_S.first] - 25 * count_class[max_S.first]), abs(s_B[max_S.first] - 28 * count_class[max_S.first]))) < (min(abs(s_B[min_S.first] + *ptr - 25 * count_class[min_S.first]), abs(s_B[min_S.first] + *ptr - 28 * count_class[min_S.first])) + min(abs(s_B[max_S.first] - *ptr - 25 * count_class[max_S.first]), abs(s_B[max_S.first] - *ptr - 28 * count_class[max_S.first])))) break;
+        s_B[max_S.first] -= *ptr;
+        s_B[min_S.first] += *ptr;
+        B[min_S.first].push_back(*it);
+        B[max_S.first].pop_back();
     }
     return { B,s_B };
 }
 
 int main() {
-    srand(time(0));
+    //srand(time(0));
     ifstream file("cord.txt");
     vector<pair<float, float>>cord_schools, cord_houses;
     vector<pair<House, int>>houses;
@@ -333,8 +345,10 @@ int main() {
         ++id;
     }
 
-    auto t = option_1(cord_schools, cord_houses, houses);
-    auto t2 = option_2(cord_schools, cord_houses, houses);
+    map<pair<float, float>, int> ef1, ef2;
+    map<pair<float, float>, int> c1, c2;
+    auto t = solution_1(c1, ef1, cord_schools, cord_houses, houses);    
+    auto t2 = solution_2(c2, ef2, cord_schools, cord_houses, houses);
     auto m = calcEf(t.first, t.second);
     auto m2 = calcEf(t2.first, t2.second);
     int sum1 = 0, sum2 = 0;
