@@ -245,9 +245,13 @@ void getMin_Max(const map<pair<float, float>, int>& s_B, pair<pair<float, float>
         if (count_classes[it.first] * 25 - it.second > min.second)
             min = { it.first,  count_classes[it.first] * 25 - it.second };
         if (it.second - count_classes[it.first] * 25 < min_2.second)
-            min_2 = { it.first,  count_classes[it.first] * 25 - it.second };
+            min_2 = { it.first,  it.second - count_classes[it.first] * 25 };
+        else if (it.second - count_classes[it.first] * 25 == min_2.second) {
+            if (double(it.second - count_classes[it.first] * 25) / (count_classes[it.first] * 28 - count_classes[it.first] * 25) < (double(min_2.second) / (count_classes[min_2.first] * 28 - count_classes[min_2.first] * 25)))
+                min_2 = { it.first,  it.second - count_classes[it.first] * 25 };
+        }
     }
-    if (min.second != INT_MIN)
+    if (min.second > 0)
         min_S = min;// min
     else
         min_S = min_2;
@@ -308,8 +312,8 @@ pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pai
         sorting(min_S.first, max_S.first, B, houses);
         auto it = --B[max_S.first].end();
         int* ptr = &((*it).first.first.second.second);
-        it->first.first.second.first = houses[it->second].first.getDisToSch(min_S.first);
         if ((min(abs(s_B[min_S.first] - 25 * count_class[min_S.first]), abs(s_B[min_S.first] - 28 * count_class[min_S.first])) + min(abs(s_B[max_S.first] - 25 * count_class[max_S.first]), abs(s_B[max_S.first] - 28 * count_class[max_S.first]))) < (min(abs(s_B[min_S.first] + *ptr - 25 * count_class[min_S.first]), abs(s_B[min_S.first] + *ptr - 28 * count_class[min_S.first])) + min(abs(s_B[max_S.first] - *ptr - 25 * count_class[max_S.first]), abs(s_B[max_S.first] - *ptr - 28 * count_class[max_S.first])))) break;
+        it->first.first.second.first = houses[it->second].first.getDisToSch(min_S.first);
         s_B[max_S.first] -= *ptr;
         s_B[min_S.first] += *ptr;
         B[min_S.first].push_back(*it);
@@ -339,7 +343,7 @@ int main() {
         int children = rand() % 20 + 1;//случайная генерация кол-ва детей от 1 до 20
         for (auto cord_school : cord_schools) {//расчет расстояния от дома до каждой школы
             dis[cord_school] = (calculateTheDistance(cord_house.first, cord_house.second, cord_school.first, cord_school.second));
-            ratio_dis[cord_school] = children / dis[cord_school];//расчет коэф расстояния от дома до каждой школы
+            ratio_dis[cord_school] = double(children) / dis[cord_school];//расчет коэф расстояния от дома до каждой школы
         }
         houses.push_back({ { children, dis, cord_house,ratio_dis, id}, id });//создание объекта одного дома
         ++id;
