@@ -94,8 +94,8 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
     for (auto it : s_B) {
         ++c;
         if (it.second > 28 * count_class[it.first]) {
-            pair<int, pair<float, float>>min;
-            min.second.second = INT_MAX;
+            pair<pair<int, int>, pair<float, float>>min;
+            min.first.second = INT_MAX;
             int count = 0;
             for (auto it2 : A[it.first]) {
                 pair<pair<float, float>, int>m = { {0,0},INT_MAX };
@@ -103,17 +103,16 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
                 auto dis = houses[it2.second].first.getDis();
                 for (auto it3 : dis)
                     if (m.second > abs(current - it3.second) && current != it3.second && foo(it2.first.second, it3.first)) m = { it3.first,abs(current - it3.second) };
-                if (min.second.second > m.second) min = { count, m.first };
+                if (min.first.second > m.second) min = { {count, m.second}, m.first };
                 ++count;
             }
-            h = min;
-            sch = it.first;
+            h = {min.first.first, it.first};
+            sch = min.second;
             return false;
         }
         else if (it.second < 25 * count_class[it.first]) {
-            pair<int, pair<float, float>>min;// out num; in
-            min.second.second = INT_MAX;
-            pair<float, float> tmp_sch;
+            pair<pair<int, int>, pair<float, float>>min;
+            min.first.second = INT_MAX;
             for (auto it2 : A) {
                 if (it2.first != it.first) {
                     pair<int, int>m = { 0,INT_MAX };
@@ -125,12 +124,12 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
                             m = { count,abs(current - new_dis) }, flag2 = true;
                         ++count;
                     }
-                    if (min.second.second > m.second) min = { m.first,it.first }, tmp_sch = it2.first;
+                    if (min.first.second > m.second) min = { {m.first, m.second},it2.first };
                 }
             }
             if (!flag2) continue;
-            h = min;
-            sch = tmp_sch;
+            h = {min.first.first, min.second};
+            sch = it.first;
             return false;
         }
     }
@@ -228,13 +227,13 @@ pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pai
     pair<float, float>sch;
     int count_iteration = 0;
     while (!getH(s_B, h, sch, count_class, B, houses)) {//поиск дома для перекидывания
-        int* ptr = &(B[sch][h.first].first.first.second.second);
-        s_B[sch] -= *ptr;
-        s_B[h.second] += *ptr;
-        B[sch][h.first].first.first.second.first = houses[B[sch][h.first].second].first.getDisToSch(h.second);
-        B[sch][h.first].first.second.push_back(sch);
-        B[h.second].push_back(B[sch][h.first]);
-        B[sch].erase(B[sch].begin() + h.first);
+        int* ptr = &(B[h.second][h.first].first.first.second.second);
+        s_B[h.second] -= *ptr;
+        s_B[sch] += *ptr;
+        B[h.second][h.first].first.first.second.first = houses[B[h.second][h.first].second].first.getDisToSch(sch);
+        B[h.second][h.first].first.second.push_back(h.second);
+        B[sch].push_back(B[h.second][h.first]);
+        B[h.second].erase(B[h.second].begin() + h.first);
         ++count_iteration;
     }
     return { B,s_B };
