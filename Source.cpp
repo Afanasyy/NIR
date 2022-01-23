@@ -355,7 +355,7 @@ int main() {
 
     map<pair<float, float>, pair<int, float>> ef1_first, ef2_first;
     auto sol_1 = solution_1(ef1_first, cord_schools, cord_houses, houses);
-    auto sol_2 = solution_2(true, ef2_first, cord_schools, cord_houses, houses);
+    auto sol_2 = solution_2(false, ef2_first, cord_schools, cord_houses, houses);
     auto ef_1 = calcEf(sol_1.first, sol_1.second);
     auto ef_2 = calcEf(sol_2.first, sol_2.second);
     pair<int, int>sum_dis = { 0,0 }, sum_dis_first = { 0,0 };
