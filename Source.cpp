@@ -221,8 +221,7 @@ pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pai
 
     B = A;
     s_B = s_A;
-    pair<float, float>min_S;
-    pair<float, float>max_S;
+
     pair<int, pair<float, float>>h;
     pair<float, float>sch;
     int count_iteration = 0;
