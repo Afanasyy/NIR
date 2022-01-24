@@ -95,7 +95,7 @@ int calcCountClasses(const int& s) {
             mmin = { i,m };
     }
     if (ans.empty()) {
-        cout << "Кол-во классов увеличенно на 1\n";
+        cout << "Кол-во классов по верхней границе\n";
         return ceil(upper);
     }
     return ans[mmin.first];
@@ -226,9 +226,10 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
             for (auto it2 : A[it.first]) {
                 pair<pair<double, double>, int>m = { {0,0},INT_MAX };
                 int current = it2.first.first.second.first;
+                int children = it2.first.first.second.second;
                 auto dis = houses[it2.second].first.getDis();
                 for (auto it3 : dis)
-                    if (m.second > abs(current - it3.second) && current != it3.second && foo(it2.first.second, it3.first)) m = { it3.first,abs(current - it3.second) };
+                    if (m.second > abs(children * (current - it3.second)) && current != it3.second && foo(it2.first.second, it3.first)) m = { it3.first,abs(children * (current - it3.second)) };
                 if (min.first.second > m.second) min = { {count, m.second}, m.first };
                 ++count;
             }
@@ -247,9 +248,10 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
                     int count = 0;
                     for (auto it3 : it2.second) {
                         int current = it3.first.first.second.first;
+                        int children = it3.first.first.second.second;
                         int new_dis = houses[it3.second].first.getDisToSch(it.first);
-                        if (m.second > abs(current - new_dis) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * count_class[it2.first]))
-                            m = { count,abs(current - new_dis) }, flag2 = true;
+                        if (m.second > abs(children * (current - new_dis)) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * count_class[it2.first]))
+                            m = { count,abs(children * (current - new_dis)) }, flag2 = true;
                         ++count;
                     }
                     if (min.first.second > m.second) min = { {m.first, m.second},it2.first };
