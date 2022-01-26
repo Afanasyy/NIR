@@ -119,8 +119,6 @@ void setClasses(const bool& flag, const int& count_classes,  map<pair<double, do
         }
         for (auto it : templ_classes) const_count[it.first] = it.second;
     }
-    else
-        for (auto it : const_count) templ_classes[it.first] = it.second;
 }
 
 //void sorting(const bool& flag, const pair<double, double>& school_m, const pair<double, double>& school_M, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& map, vector<pair<House, int>>& houses) {
@@ -226,10 +224,9 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
             for (auto it2 : A[it.first]) {
                 pair<pair<double, double>, int>m = { {0,0},INT_MAX };
                 int current = it2.first.first.second.first;
-                int children = it2.first.first.second.second;
                 auto dis = houses[it2.second].first.getDis();
                 for (auto it3 : dis)
-                    if (m.second > abs(children * (current - it3.second)) && current != it3.second && foo(it2.first.second, it3.first)) m = { it3.first,abs(children * (current - it3.second)) };
+                    if (m.second > abs(current - it3.second) && current != it3.second && foo(it2.first.second, it3.first)) m = { it3.first,abs(current - it3.second) };
                 if (min.first.second > m.second) min = { {count, m.second}, m.first };
                 ++count;
             }
@@ -248,10 +245,9 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
                     int count = 0;
                     for (auto it3 : it2.second) {
                         int current = it3.first.first.second.first;
-                        int children = it3.first.first.second.second;
                         int new_dis = houses[it3.second].first.getDisToSch(it.first);
-                        if (m.second > abs(children * (current - new_dis)) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * count_class[it2.first]))
-                            m = { count,abs(children * (current - new_dis)) }, flag2 = true;
+                        if (m.second > abs(current - new_dis) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * count_class[it2.first]))
+                            m = { count,abs(current - new_dis) }, flag2 = true;
                         ++count;
                     }
                     if (min.first.second > m.second) min = { {m.first, m.second},it2.first };
@@ -266,7 +262,19 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
     if (c == count_class.size()) return true;
 }
 
-pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>> solution_1(map<pair<double, double>, pair<int, double>>& ef, vector<pair<House, int>>& houses) {
+pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<vector<pair<pair<double, double>, pair<int, int>>>, int>>&ans, vector<pair<House, int>>&houses) {
+    map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>> A;
+    map<pair<double, double>, int> s_A;//сумма детей в каждой школе
+    for (const auto& it : ans) {
+        s_A[it.first]=it.second.second;
+        for (const auto& it2 : it.second.first)
+            A[it.first].push_back({ {{{it2.first},{houses[it2.second.second].first.getDisToSch(it.first),it2.second.first}},vector<pair<double, double>>(0)},it2.second.second });
+    }
+    auto t = calcEf(A, s_A);
+    return{ true,{A,s_A} };
+}
+
+pair<bool,pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<int, double>>& ef, vector<pair<House, int>>& houses) {
     map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>> A, B;
     //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
     map<pair<double, double>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
@@ -289,9 +297,8 @@ pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>,
     auto count = calcCountClasses(s);
 
     int count_iteration = 0;
-
-    while (!flag) {
-        setClasses(true, count, count_class);//true - перераспределение; false - копирование
+    bool flag2 = true;
+    while (!flag) {        
         B = A;
         s_B = s_A;
         pair<int, pair<double, double>>h;
@@ -300,6 +307,8 @@ pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>,
             if (h.first == -1) {
                 cout << "Кол-во классов увеличенно на 1\n";
                 count++;
+                flag2 = false;
+                setClasses(true, count, count_class);//true - перераспределение; false - копирование
                 break;
             }
             int* ptr = &(B[h.second][h.first].first.first.second.second);
@@ -312,7 +321,7 @@ pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>,
             ++count_iteration;
         }
     }
-    return { B,s_B };
+    return { flag2, {B,s_B} };
 }
 
 double calculateTheDistance(const double& a1, const double& b1, const double& a2, const double& b2) {
@@ -338,23 +347,30 @@ int main() {
     vector<pair<double, double>>cord_schools;
     vector<pair<pair<double, double>, int>>cord_houses;
     vector<pair<House, int>>houses;
+    map<pair<double, double>, int>templ_classes;
+    map<pair<double, double>, pair<vector<pair<pair<double, double>, pair<int, int>>>, int>>ans;
     while (!file.eof()) {//считывание из файла координат домов и школ
         string str;
         getline(file, str);
         size_t t = str.find(',');
         if (str[0] == '!') {
-            auto tmp1 = str.substr(1, t - 1);
-            auto tmp2 = str.substr(t + 2);
-            cord_schools.push_back({ stod(tmp1), stod(tmp2) });
+            auto tmp1 = stod(str.substr(1, t - 1));
+            auto tmp2 = stod(str.substr(t + 2));
+            cord_schools.push_back({ tmp1, tmp2 });
+            templ_classes[{ tmp1, tmp2 }];
+            ans[{tmp1, tmp2}];
         }
         else {
             size_t t2 = str.find(';');
             auto tmp1 = str.substr(0, t);
             auto tmp2 = str.substr(t + 2, t2 - t - 2);
-            auto tmp3 = str.substr(t2 + 2);
-            cord_houses.push_back({ { stod(tmp1),  stod(tmp2)}, stoi(tmp3) });
+            auto tmp3 = stoi(str.substr(t2 + 2));
+            cord_houses.push_back({ { stod(tmp1),  stod(tmp2)}, tmp3 });
         }
     }
+
+    vector<pair<pair<double, double>, pair<int, int>>>numbers;
+    int sum = 0;
     int id = 0;
     for (auto cord_house : cord_houses) {
         map<pair<double, double>, double> ratio_dis;//массивы расстояний и коэф расстояний
@@ -364,28 +380,62 @@ int main() {
             children = cord_house.second;
         else
             children = rand() % 20 + 1;//случайная генерация кол-ва детей от 1 до 20
+        sum += children;
+        numbers.push_back({ {cord_house.first},{children,id} });
         for (auto cord_school : cord_schools) {//расчет расстояния от дома до каждой школы
             dis[cord_school] = (calculateTheDistance(cord_house.first.first, cord_house.first.second, cord_school.first, cord_school.second));
             ratio_dis[cord_school] = double(children) / dis[cord_school];//расчет коэф расстояния от дома до каждой школы
         }
-        houses.push_back({ { children, dis, cord_house.first,ratio_dis, id}, id });//создание объекта одного дома
+        houses.push_back({ { children, dis, cord_house.first,ratio_dis, id}, id });//создание объекта одного 
         ++id;
     }
 
-    map<pair<double, double>, pair<int, double>> ef1_first, ef2_first;
-    pair<int, int>sum_dis = { 0,0 }, sum_dis_first = { 0,0 };
-    pair<double, double>sum_ratio_dis = { 0,0 }, sum_ratio_dis_first = { 0,0 };
+
+    auto count = calcCountClasses(sum);
+    setClasses(true, count, templ_classes);
+
+    sort(numbers.begin(), numbers.end(), [](auto& l, auto& r)->bool {return l.second.first < r.second.first; });
+
+    vector<int>tmp;
+    bool flag2;
+    while (!numbers.empty()) {
+        flag2 = false;
+        for (const auto& it : cord_schools) {
+            if (ans[it].second + numbers.back().second.first <= const_count[it] * 28) {
+                ans[it].first.push_back(numbers.back());
+                ans[it].second += numbers.back().second.first;
+                numbers.pop_back();
+                flag2 = true;
+                break;
+            }
+        }
+        if (!flag2) {
+            tmp.push_back(numbers.back().second.first);
+            numbers.pop_back();
+        }
+    }
+    solution_1(ans, houses);
+    if (tmp.empty()) {
+        map<pair<double, double>, pair<int, double>> ef1_first, ef2_first;
+        pair<int, int>sum_dis = { 0,0 }, sum_dis_first = { 0,0 };
+        pair<double, double>sum_ratio_dis = { 0,0 }, sum_ratio_dis_first = { 0,0 };
 
 
-    auto sol_1 = solution_1(ef1_first, houses);
-    auto ef_1 = calcEf(sol_1.first, sol_1.second);
-    for (auto i : ef_1) sum_dis.first += i.second.first, sum_ratio_dis.first += i.second.second;
-    for (auto i : ef1_first) sum_dis_first.first += i.second.first, sum_ratio_dis_first.first += i.second.second;
+        auto sol_1 = solution_1(ef1_first, houses);
+        auto ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
+        for (auto i : ef_1) sum_dis.first += i.second.first, sum_ratio_dis.first += i.second.second;
+        for (auto i : ef1_first) sum_dis_first.first += i.second.first, sum_ratio_dis_first.first += i.second.second;
 
-    //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
-    //auto ef_2 = calcEf(sol_2.first, sol_2.second);
-    //for (auto i : ef_2) sum_dis.second += i.second.first, sum_ratio_dis.second += i.second.second;
-    //for (auto i : ef2_first) sum_dis_first.second += i.second.first, sum_ratio_dis_first.second += i.second.second;
+        if (!sol_1.first) {
+           
+        }
 
+        //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
+        //auto ef_2 = calcEf(sol_2.first, sol_2.second);
+        //for (auto i : ef_2) sum_dis.second += i.second.first, sum_ratio_dis.second += i.second.second;
+        //for (auto i : ef2_first) sum_dis_first.second += i.second.first, sum_ratio_dis_first.second += i.second.second;
+    }
+    else
+        cout << "Нет допустимых решений";
     return 0;
 }
