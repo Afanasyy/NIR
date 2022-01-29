@@ -272,7 +272,11 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
 bool getHs(map<pair<double, double>, int>& s_B, int& h_o, int& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
     for (const auto& it : A) {
         for (const auto& it2 : it.second) {
-
+            auto dis = houses[it2.second].first.getNearDis(it2.first.first.second.first);
+            if (dis.second == 0) continue;
+            vector<pair<pair<double, double>, pair<int, int>>>tmp;
+            for (const auto& it3 : A[dis.first]) 
+                if (houses[it3.second].first.getDisToSch(dis.first) < it3.first.first.second.first) tmp.push_back(it3.first.first);            
         }
     }
 }
