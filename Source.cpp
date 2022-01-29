@@ -61,7 +61,7 @@ public:
     pair<pair<float, float>, int>getNearDis(const int& cur) {
         vector<pair<pair<float, float>, int>>tmp;
         for (const auto& it : dis) tmp.push_back(it);
-        sort(tmp.begin(), tmp.end(), [](auto& l, auto& r)->bool {return l.second < r.second; });
+        sort(tmp.begin(), tmp.end(), [](auto& l, auto& r)->bool {return l.second > r.second; });
         for (const auto& it : tmp) if (it.second < cur) return it;
         return { {0,0},0 };
     }
@@ -108,7 +108,7 @@ int calcCountClasses(const int& s) {
     return ans[mmin.first];
 }
 
-void setClasses(const bool& flag, const int& count_classes,  map<pair<double, double>, int>templ_classes) {
+void setClasses(const bool& flag, const int& count_classes, map<pair<double, double>, int>templ_classes) {
     if (flag) {
         int min_c = floor(double(count_classes) / templ_classes.size());
         int remains = count_classes - min_c * templ_classes.size();//остаток
@@ -298,11 +298,11 @@ bool getHs(map<pair<double, double>, int>& s_B, int& h_o, vector<int>& h_in, pai
     return true;
 }
 
-pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<vector<pair<pair<double, double>, pair<int, int>>>, int>>&ans, vector<pair<House, int>>&houses) {
-    map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>> A,B;
-    map<pair<double, double>, int> s_A,s_B;//сумма детей в каждой школе
+pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<vector<pair<pair<double, double>, pair<int, int>>>, int>>& ans, vector<pair<House, int>>& houses) {
+    map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>> A, B;
+    map<pair<double, double>, int> s_A, s_B;//сумма детей в каждой школе
     for (const auto& it : ans) {
-        s_A[it.first]=it.second.second;
+        s_A[it.first] = it.second.second;
         for (const auto& it2 : it.second.first)
             A[it.first].push_back({ {{{it2.first},{houses[it2.second.second].first.getDisToSch(it.first),it2.second.first}},vector<pair<double, double>>(0)},it2.second.second });
     }
@@ -337,7 +337,7 @@ pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<doubl
     return{ true,{B,s_B} };
 }
 
-pair<bool,pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<int, double>>& ef, vector<pair<House, int>>& houses) {
+pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<int, double>>& ef, vector<pair<House, int>>& houses) {
     map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>> A, B;
     //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
     map<pair<double, double>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
@@ -361,11 +361,11 @@ pair<bool,pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double
 
     int count_iteration = 0;
     bool flag2 = true;
-    while (!flag) {        
+    while (!flag) {
         B = A;
         s_B = s_A;
         pair<int, pair<double, double>>h;
-        pair<double, double>sch;        
+        pair<double, double>sch;
         while (!(flag = getH(s_B, h, sch, B, houses))) {//поиск дома для перекидывания
             if (h.first == -1) {
                 cout << "Кол-во классов увеличенно на 1\n";
@@ -405,7 +405,7 @@ int main() {
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
     //srand(time(0));
-    bool flag = true; // true - ручной ввод; false - случайная генерация
+    bool flag = false; // true - ручной ввод; false - случайная генерация
     ifstream file("cord.txt");
     vector<pair<double, double>>cord_schools;
     vector<pair<pair<double, double>, int>>cord_houses;
@@ -477,7 +477,7 @@ int main() {
             numbers.pop_back();
         }
     }
-    auto sol_0=solution_1(ans, houses);
+    auto sol_0 = solution_1(ans, houses);
     auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
 
     if (tmp.empty()) {
