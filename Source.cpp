@@ -58,6 +58,13 @@ public:
             if (it.first == sch) return it.second;
         }
     }
+    pair<pair<float, float>, int>getNearDis(const int& cur) {
+        vector<pair<pair<float, float>, int>>tmp;
+        for (const auto& it : dis) tmp.push_back(it);
+        sort(tmp.begin(), tmp.end(), [](auto& l, auto& r)->bool {return l.second < r.second; });
+        for (const auto& it : tmp) if (it.second < cur) return it;
+        return { {0,0},0 };
+    }
     double getRatioDisToSch(const pair<double, double>& sch) {
         for (auto it : ratio_dis) {
             if (it.first == sch) return it.second;
@@ -260,6 +267,14 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
         }
     }
     if (c == count_class.size()) return true;
+}
+
+bool getHs(map<pair<double, double>, int>& s_B, int& h_o, int& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
+    for (const auto& it : A) {
+        for (const auto& it2 : it.second) {
+
+        }
+    }
 }
 
 pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<vector<pair<pair<double, double>, pair<int, int>>>, int>>&ans, vector<pair<House, int>>&houses) {
