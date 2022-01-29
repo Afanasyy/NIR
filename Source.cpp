@@ -269,16 +269,35 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
     if (c == const_count.size()) return true;
 }
 
+bool distribution(const vector<pair<int, int>>& list, const int& lower, const int& upper, vector<int>ans) {
+
+}
+
 bool getHs(map<pair<double, double>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
+    bool flag = false;
     for (const auto& it : A) {
         for (const auto& it2 : it.second) {
+            int children = it2.first.first.second.second;
             auto dis = houses[it2.second].first.getNearDis(it2.first.first.second.first);
             if (dis.second == 0) continue;
-            vector<pair<pair<double, double>, pair<int, int>>>tmp;
-            for (const auto& it3 : A[dis.first]) 
-                if (houses[it3.second].first.getDisToSch(dis.first) < it3.first.first.second.first) tmp.push_back(it3.first.first);            
+            vector<pair<int, int>>list;//дети, id
+            for (const auto& it3 : A[dis.first])
+                if (houses[it3.second].first.getDisToSch(dis.first) < it3.first.first.second.first)
+                    list.push_back({ it3.first.first.second.second,it3.second });
+            int lower = s_B[dis.first] - (28 * const_count[dis.first]) + children;
+            int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
+            vector<int>ans;
+            if (list.empty()) continue;
+            if (flag = distribution(list, lower, upper, ans)) {
+                h_o = it2.second;
+                h_in = ans;
+                s_o = it.first;
+                s_in = dis.first;
+                return false;
+            }
         }
     }
+    if (!flag) return true;
 }
 
 pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<vector<pair<pair<double, double>, pair<int, int>>>, int>>&ans, vector<pair<House, int>>&houses) {
@@ -316,11 +335,8 @@ pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<doubl
             B[s_o].push_back(B[s_in][tmp]);
             B[s_in].erase(B[s_in].begin() + tmp);
         }
-
         ++count_iteration;
     }
-
-
     return{ true,{B,s_B} };
 }
 
