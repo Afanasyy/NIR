@@ -270,12 +270,11 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
 }
 
 bool distribution(const vector<pair<int, int>>& list, const int& lower, const int& upper, vector<int>ans) {
-
+    return true;
 }
 
 bool getHs(map<pair<double, double>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
-    bool flag = false;
-    for (const auto& it : A) {
+    for (const auto& it : A)
         for (const auto& it2 : it.second) {
             int children = it2.first.first.second.second;
             auto dis = houses[it2.second].first.getNearDis(it2.first.first.second.first);
@@ -288,7 +287,7 @@ bool getHs(map<pair<double, double>, int>& s_B, int& h_o, vector<int>& h_in, pai
             int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
             vector<int>ans;
             if (list.empty()) continue;
-            if (flag = distribution(list, lower, upper, ans)) {
+            if (distribution(list, lower, upper, ans)) {
                 h_o = it2.second;
                 h_in = ans;
                 s_o = it.first;
@@ -296,8 +295,7 @@ bool getHs(map<pair<double, double>, int>& s_B, int& h_o, vector<int>& h_in, pai
                 return false;
             }
         }
-    }
-    if (!flag) return true;
+    return true;
 }
 
 pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<vector<pair<pair<double, double>, pair<int, int>>>, int>>&ans, vector<pair<House, int>>&houses) {
@@ -310,7 +308,6 @@ pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<doubl
     }
     auto t = calcEf(A, s_A);
 
-
     B = A;
     s_B = s_A;
 
@@ -319,7 +316,7 @@ pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<doubl
     pair<float, float>s_o, s_in;
     while (!getHs(s_B, h_o, h_in, s_o, s_in, B, houses)) {
         int tmp;
-        for (int i = 0; i < B[s_o].size(); ++i) if (B[s_o][i].second = h_o) { tmp = i; break; }
+        for (int i = 0; i < B[s_o].size(); ++i) if (B[s_o][i].second == h_o) { tmp = i; break; }
         int* ptr = &(B[s_o][tmp].first.first.second.second);
         s_B[s_o] -= *ptr;
         s_B[s_in] += *ptr;
@@ -327,7 +324,7 @@ pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<doubl
         B[s_in].push_back(B[s_o][tmp]);
         B[s_o].erase(B[s_o].begin() + tmp);
         for (const auto& it : h_in) {
-            for (int i = 0; i < B[s_in].size(); ++i) if (B[s_in][i].second = it) { tmp = i; break; }
+            for (int i = 0; i < B[s_in].size(); ++i) if (B[s_in][i].second == it) { tmp = i; break; }
             int* ptr = &(B[s_in][tmp].first.first.second.second);
             s_B[s_in] -= *ptr;
             s_B[s_o] += *ptr;
@@ -480,7 +477,9 @@ int main() {
             numbers.pop_back();
         }
     }
-    solution_1(ans, houses);
+    auto sol_0=solution_1(ans, houses);
+    auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
+
     if (tmp.empty()) {
         map<pair<double, double>, pair<int, double>> ef1_first, ef2_first;
         pair<int, int>sum_dis = { 0,0 }, sum_dis_first = { 0,0 };
@@ -492,10 +491,7 @@ int main() {
         for (auto i : ef_1) sum_dis.first += i.second.first, sum_ratio_dis.first += i.second.second;
         for (auto i : ef1_first) sum_dis_first.first += i.second.first, sum_ratio_dis_first.first += i.second.second;
 
-        if (!sol_1.first) {
-           
-        }
-
+        cout << "YES";
         //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
         //auto ef_2 = calcEf(sol_2.first, sol_2.second);
         //for (auto i : ef_2) sum_dis.second += i.second.first, sum_ratio_dis.second += i.second.second;
