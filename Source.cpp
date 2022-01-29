@@ -219,12 +219,12 @@ bool foo(const vector<pair<double, double>>& v, const pair<double, double>& t) {
     return true;
 }
 
-bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& h, pair<double, double>& sch, map<pair<double, double>, int>& count_class, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
+bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& h, pair<double, double>& sch, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
     int c = 0;
     bool flag2 = false;
     for (auto it : s_B) {
         ++c;
-        if (it.second > 28 * count_class[it.first]) {
+        if (it.second > 28 * const_count[it.first]) {
             pair<pair<int, int>, pair<double, double>>min;
             min.first.second = INT_MAX;
             int count = 0;
@@ -243,7 +243,7 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
             sch = min.second;
             return false;
         }
-        else if (it.second < 25 * count_class[it.first]) {
+        else if (it.second < 25 * const_count[it.first]) {
             pair<pair<int, int>, pair<double, double>>min;
             min.first.second = INT_MAX;
             for (auto it2 : A) {
@@ -253,7 +253,7 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
                     for (auto it3 : it2.second) {
                         int current = it3.first.first.second.first;
                         int new_dis = houses[it3.second].first.getDisToSch(it.first);
-                        if (m.second > abs(current - new_dis) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * count_class[it2.first]))
+                        if (m.second > abs(current - new_dis) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * const_count[it2.first]))
                             m = { count,abs(current - new_dis) }, flag2 = true;
                         ++count;
                     }
@@ -266,7 +266,7 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
             return false;
         }
     }
-    if (c == count_class.size()) return true;
+    if (c == const_count.size()) return true;
 }
 
 bool getHs(map<pair<double, double>, int>& s_B, int& h_o, int& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
@@ -322,7 +322,7 @@ pair<bool,pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double
         s_B = s_A;
         pair<int, pair<double, double>>h;
         pair<double, double>sch;        
-        while (!(flag = getH(s_B, h, sch, const_count, B, houses))) {//поиск дома для перекидывания
+        while (!(flag = getH(s_B, h, sch, B, houses))) {//поиск дома для перекидывания
             if (h.first == -1) {
                 cout << "Кол-во классов увеличенно на 1\n";
                 count++;
