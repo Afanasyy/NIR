@@ -269,7 +269,7 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
     if (c == const_count.size()) return true;
 }
 
-bool getHs(map<pair<double, double>, int>& s_B, int& h_o, int& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
+bool getHs(map<pair<double, double>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>& A, vector<pair<House, int>>& houses) {
     for (const auto& it : A) {
         for (const auto& it2 : it.second) {
             auto dis = houses[it2.second].first.getNearDis(it2.first.first.second.first);
@@ -282,15 +282,46 @@ bool getHs(map<pair<double, double>, int>& s_B, int& h_o, int& h_in, pair<float,
 }
 
 pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<vector<pair<pair<double, double>, pair<int, int>>>, int>>&ans, vector<pair<House, int>>&houses) {
-    map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>> A;
-    map<pair<double, double>, int> s_A;//сумма детей в каждой школе
+    map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>> A,B;
+    map<pair<double, double>, int> s_A,s_B;//сумма детей в каждой школе
     for (const auto& it : ans) {
         s_A[it.first]=it.second.second;
         for (const auto& it2 : it.second.first)
             A[it.first].push_back({ {{{it2.first},{houses[it2.second.second].first.getDisToSch(it.first),it2.second.first}},vector<pair<double, double>>(0)},it2.second.second });
     }
     auto t = calcEf(A, s_A);
-    return{ true,{A,s_A} };
+
+
+    B = A;
+    s_B = s_A;
+
+    int h_o, count_iteration = 0;
+    vector<int>h_in;
+    pair<float, float>s_o, s_in;
+    while (!getHs(s_B, h_o, h_in, s_o, s_in, B, houses)) {
+        int tmp;
+        for (int i = 0; i < B[s_o].size(); ++i) if (B[s_o][i].second = h_o) { tmp = i; break; }
+        int* ptr = &(B[s_o][tmp].first.first.second.second);
+        s_B[s_o] -= *ptr;
+        s_B[s_in] += *ptr;
+        B[s_o][tmp].first.first.second.first = houses[B[s_o][tmp].second].first.getDisToSch(s_in);
+        B[s_in].push_back(B[s_o][tmp]);
+        B[s_o].erase(B[s_o].begin() + tmp);
+        for (const auto& it : h_in) {
+            for (int i = 0; i < B[s_in].size(); ++i) if (B[s_in][i].second = it) { tmp = i; break; }
+            int* ptr = &(B[s_in][tmp].first.first.second.second);
+            s_B[s_in] -= *ptr;
+            s_B[s_o] += *ptr;
+            B[s_in][tmp].first.first.second.first = houses[B[s_in][tmp].second].first.getDisToSch(s_o);
+            B[s_o].push_back(B[s_in][tmp]);
+            B[s_in].erase(B[s_in].begin() + tmp);
+        }
+
+        ++count_iteration;
+    }
+
+
+    return{ true,{B,s_B} };
 }
 
 pair<bool,pair<map<const pair<double, double>, vector<pair<pair<pair<pair<double, double>, pair<int, int>>, vector<pair<double, double>>>, int>>>, map<pair<double, double>, int>>> solution_1(map<pair<double, double>, pair<int, double>>& ef, vector<pair<House, int>>& houses) {
