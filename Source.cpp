@@ -231,9 +231,10 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
             for (auto it2 : A[it.first]) {
                 pair<pair<double, double>, int>m = { {0,0},INT_MAX };
                 int current = it2.first.first.second.first;
+                int children = it2.first.first.second.second;
                 auto dis = houses[it2.second].first.getDis();
                 for (auto it3 : dis)
-                    if (m.second > abs(current - it3.second) && current != it3.second && foo(it2.first.second, it3.first)) m = { it3.first,abs(current - it3.second) };
+                    if (m.second > abs(current - (it3.second * children)) && current != (it3.second * children) && foo(it2.first.second, it3.first)) m = { it3.first,abs(current - (it3.second * children)) };
                 if (min.first.second > m.second) min = { {count, m.second}, m.first };
                 ++count;
             }
@@ -252,9 +253,10 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
                     int count = 0;
                     for (auto it3 : it2.second) {
                         int current = it3.first.first.second.first;
+                        int children = it3.first.first.second.second;
                         int new_dis = houses[it3.second].first.getDisToSch(it.first);
-                        if (m.second > abs(current - new_dis) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * const_count[it2.first]))
-                            m = { count,abs(current - new_dis) }, flag2 = true;
+                        if (m.second > abs(current - new_dis * children) && current != (new_dis * children) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * const_count[it2.first]))
+                            m = { count,abs(current - new_dis * children) }, flag2 = true;
                         ++count;
                     }
                     if (min.first.second > m.second) min = { {m.first, m.second},it2.first };
@@ -269,7 +271,7 @@ bool getH(map<pair<double, double>, int>& s_B, pair<int, pair<double, double>>& 
     if (c == const_count.size()) return true;
 }
 
-bool distribution(const vector<pair<int, int>>& list, const int& lower, const int& upper, vector<int>ans) {
+bool smart_search(const vector<pair<int, int>>& list, const int& lower, const int& upper, vector<int>ans) {
     return true;
 }
 
@@ -287,7 +289,7 @@ bool getHs(map<pair<double, double>, int>& s_B, int& h_o, vector<int>& h_in, pai
             int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
             vector<int>ans;
             if (list.empty()) continue;
-            if (distribution(list, lower, upper, ans)) {
+            if (smart_search(list, lower, upper, ans)) {
                 h_o = it2.second;
                 h_in = ans;
                 s_o = it.first;
@@ -345,7 +347,7 @@ pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<doubl
     for (auto house : houses) {
         auto tmp = house.first.getMin_dis();//минимальное расстояние
         auto t = vector<pair<double, double>>(0);
-        A[tmp.first].push_back({ {{ house.first.getCord(),{tmp.second,house.first.getChildren()} },t}, house.first.getID() });
+        A[tmp.first].push_back({ {{ house.first.getCord(),{tmp.second* house.first.getChildren(),house.first.getChildren()} },t}, house.first.getID() });
         //распределение домов к школе с максимальным коэф
         s_A[tmp.first] += house.first.getChildren();//подсчет суммы детей в школе
         count_class[tmp.first] = 0;
@@ -377,7 +379,7 @@ pair<bool, pair<map<const pair<double, double>, vector<pair<pair<pair<pair<doubl
             int* ptr = &(B[h.second][h.first].first.first.second.second);
             s_B[h.second] -= *ptr;
             s_B[sch] += *ptr;
-            B[h.second][h.first].first.first.second.first = houses[B[h.second][h.first].second].first.getDisToSch(sch);
+            B[h.second][h.first].first.first.second.first = houses[B[h.second][h.first].second].first.getDisToSch(sch)* B[h.second][h.first].first.first.second.second;
             B[h.second][h.first].first.second.push_back(h.second);
             B[sch].push_back(B[h.second][h.first]);
             B[h.second].erase(B[h.second].begin() + h.first);
@@ -477,27 +479,24 @@ int main() {
             numbers.pop_back();
         }
     }
-    auto sol_0 = solution_1(ans, houses);
-    auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
-
-    if (tmp.empty()) {
-        map<pair<double, double>, pair<int, double>> ef1_first, ef2_first;
-        pair<int, int>sum_dis = { 0,0 }, sum_dis_first = { 0,0 };
-        pair<double, double>sum_ratio_dis = { 0,0 }, sum_ratio_dis_first = { 0,0 };
+    /*auto sol_0 = solution_1(ans, houses);
+    auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);*/
 
 
-        auto sol_1 = solution_1(ef1_first, houses);
-        auto ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
-        for (auto i : ef_1) sum_dis.first += i.second.first, sum_ratio_dis.first += i.second.second;
-        for (auto i : ef1_first) sum_dis_first.first += i.second.first, sum_ratio_dis_first.first += i.second.second;
+    map<pair<double, double>, pair<int, double>> ef1_first, ef2_first;
+    pair<int, int>sum_dis = { 0,0 }, sum_dis_first = { 0,0 };
+    pair<double, double>sum_ratio_dis = { 0,0 }, sum_ratio_dis_first = { 0,0 };
 
-        cout << "YES";
-        //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
-        //auto ef_2 = calcEf(sol_2.first, sol_2.second);
-        //for (auto i : ef_2) sum_dis.second += i.second.first, sum_ratio_dis.second += i.second.second;
-        //for (auto i : ef2_first) sum_dis_first.second += i.second.first, sum_ratio_dis_first.second += i.second.second;
-    }
-    else
-        cout << "Нет допустимых решений";
+
+    auto sol_1 = solution_1(ef1_first, houses);
+    auto ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
+    for (auto i : ef_1) sum_dis.first += i.second.first, sum_ratio_dis.first += i.second.second;
+    for (auto i : ef1_first) sum_dis_first.first += i.second.first, sum_ratio_dis_first.first += i.second.second;
+
+   
+    //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
+    //auto ef_2 = calcEf(sol_2.first, sol_2.second);
+    //for (auto i : ef_2) sum_dis.second += i.second.first, sum_ratio_dis.second += i.second.second;
+    //for (auto i : ef2_first) sum_dis_first.second += i.second.first, sum_ratio_dis_first.second += i.second.second;
     return 0;
 }
