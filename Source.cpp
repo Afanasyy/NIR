@@ -84,7 +84,7 @@ map<pair<float, float>, pair<int, float>> calcEf(const map<const pair<float, flo
     for (auto it : B)
         for (auto it2 : it.second) {
             ef[it.first].first += it2.first.first.second.first;
-            ef[it.first].second += float(it2.first.first.second.second) / it2.first.first.second.first;
+            ef[it.first].second += float(it2.first.first.second.second) / (it2.first.first.second.first / it2.first.first.second.second);
         }
     return ef;
 }
@@ -212,7 +212,11 @@ void setClasses(const bool& flag, const int& count_classes, map<pair<float, floa
 //    return { B,s_B };
 //}
 
-bool foo(const vector<pair<float, float>>& v, const pair<float, float>& t) {
+bool foo(vector<pair<float, float>>& v, const pair<float, float>& t) {
+    if (v.size() == 2) {
+        v.clear();
+        return true;
+    }
     for (auto it : v)
         if (it == t)
             return false;
