@@ -83,8 +83,8 @@ map<pair<float, float>, pair<int, float>> calcEf(const map<const pair<float, flo
     map<pair<float, float>, pair<int, float>> ef;
     for (auto it : B)
         for (auto it2 : it.second) {
-            ef[it.first].first += it2.first.first.second.first;
-            ef[it.first].second += float(it2.first.first.second.second) / (it2.first.first.second.first / it2.first.first.second.second);
+            ef[it.first].first += it2.first.first.second.first * it2.first.first.second.second;
+            ef[it.first].second += float(it2.first.first.second.second) / it2.first.first.second.first;
         }
     return ef;
 }
@@ -213,13 +213,10 @@ void setClasses(const bool& flag, const int& count_classes, map<pair<float, floa
 //}
 
 bool foo(vector<pair<float, float>>& v, const pair<float, float>& t) {
-    if (v.size() == 2) {
-        v.clear();
-        return true;
-    }
     for (auto it : v)
         if (it == t)
             return false;
+    if (v.size() == 2) v.erase(v.begin());
     return true;
 }
 
@@ -235,11 +232,13 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
             for (auto it2 : A[it.first]) {
                 pair<pair<float, float>, int>m = { {0,0},INT_MAX };
                 int current = it2.first.first.second.first;
-                int children = it2.first.first.second.second;
+                int children = 1;
                 auto dis = houses[it2.second].first.getDis();
                 for (auto it3 : dis)
-                    if (m.second > abs(current - (it3.second * children)) && current != (it3.second * children) && foo(it2.first.second, it3.first)) m = { it3.first,abs(current - (it3.second * children)) };
-                if (min.first.second > m.second) min = { {count, m.second}, m.first };
+                    if (m.second > abs((current - it3.second) * children) && current != it3.second && foo(it2.first.second, it3.first))
+                        m = { it3.first,abs((current - it3.second) * children) };
+                if (min.first.second > m.second)
+                    min = { {count, m.second}, m.first };
                 ++count;
             }
             if (min.first.second == INT_MAX) h.first = -1;
@@ -259,8 +258,8 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
                         int current = it3.first.first.second.first;
                         int children = it3.first.first.second.second;
                         int new_dis = houses[it3.second].first.getDisToSch(it.first);
-                        if (m.second > abs(current - new_dis * children) && current != (new_dis * children) && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * const_count[it2.first]))
-                            m = { count,abs(current - new_dis * children) }, flag2 = true;
+                        if (m.second > abs((current - new_dis) * children) && current != new_dis && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * const_count[it2.first]))
+                            m = { count,abs((current - new_dis) * children) }, flag2 = true;
                         ++count;
                     }
                     if (min.first.second > m.second) min = { {m.first, m.second},it2.first };
@@ -351,7 +350,7 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
     for (auto house : houses) {
         auto tmp = house.first.getMin_dis();//минимальное расстояние
         auto t = vector<pair<float, float>>(0);
-        A[tmp.first].push_back({ {{ house.first.getCord(),{tmp.second* house.first.getChildren(),house.first.getChildren()} },t}, house.first.getID() });
+        A[tmp.first].push_back({ {{ house.first.getCord(),{tmp.second,house.first.getChildren()} },t}, house.first.getID() });
         //распределение домов к школе с максимальным коэф
         s_A[tmp.first] += house.first.getChildren();//подсчет суммы детей в школе
         count_class[tmp.first] = 0;
@@ -383,7 +382,7 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
             int* ptr = &(B[h.second][h.first].first.first.second.second);
             s_B[h.second] -= *ptr;
             s_B[sch] += *ptr;
-            B[h.second][h.first].first.first.second.first = houses[B[h.second][h.first].second].first.getDisToSch(sch)* B[h.second][h.first].first.first.second.second;
+            B[h.second][h.first].first.first.second.first = houses[B[h.second][h.first].second].first.getDisToSch(sch);
             B[h.second][h.first].first.second.push_back(h.second);
             B[sch].push_back(B[h.second][h.first]);
             B[h.second].erase(B[h.second].begin() + h.first);
