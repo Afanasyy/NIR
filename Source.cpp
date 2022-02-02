@@ -14,7 +14,7 @@
 using namespace std;
 
 map<pair<float, float>, int>const_count;
-
+bool fl;
 
 class House {
 public:
@@ -79,12 +79,12 @@ private:
 };
 
 
-map<pair<float, float>, pair<int, float>> calcEf(const map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& B, const map<pair<float, float>, int>& s_B) {
-    map<pair<float, float>, pair<int, float>> ef;
+pair<int, float> calcEf(const map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& B, const map<pair<float, float>, int>& s_B) {
+    pair<int, float>ef;
     for (auto it : B)
         for (auto it2 : it.second) {
-            ef[it.first].first += it2.first.first.second.first * it2.first.first.second.second;
-            ef[it.first].second += float(it2.first.first.second.second) / it2.first.first.second.first;
+            ef.first += it2.first.first.second.first * it2.first.first.second.second;
+            ef.second += float(it2.first.first.second.second) / it2.first.first.second.first;
         }
     return ef;
 }
@@ -232,7 +232,11 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
             for (auto it2 : A[it.first]) {
                 pair<pair<float, float>, int>m = { {0,0},INT_MAX };
                 int current = it2.first.first.second.first;
-                int children = 1;
+                int children;
+                if (fl)
+                    children = 1;
+                else
+                    children = it2.first.first.second.second;
                 auto dis = houses[it2.second].first.getDis();
                 for (auto it3 : dis)
                     if (m.second > abs((current - it3.second) * children) && current != it3.second && foo(it2.first.second, it3.first))
@@ -256,7 +260,11 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
                     int count = 0;
                     for (auto it3 : it2.second) {
                         int current = it3.first.first.second.first;
-                        int children = it3.first.first.second.second;
+                        int children;
+                        if (fl)
+                            children = 1;
+                        else
+                            children = it3.first.first.second.second;
                         int new_dis = houses[it3.second].first.getDisToSch(it.first);
                         if (m.second > abs((current - new_dis) * children) && current != new_dis && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * const_count[it2.first]))
                             m = { count,abs((current - new_dis) * children) }, flag2 = true;
@@ -342,7 +350,7 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
     return{ true,{B,s_B} };
 }
 
-pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(map<pair<float, float>, pair<int, float>>& ef, vector<pair<House, int>>& houses) {
+pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(pair<int, float>& ef, vector<pair<House, int>>& houses) {
     map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
     //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
     map<pair<float, float>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
@@ -409,7 +417,7 @@ int main() {
     setlocale(LC_NUMERIC, "C");
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    //srand(time(0));
+    srand(time(0));
     bool flag = false; // true - ручной ввод; false - случайная генерация
     ifstream file("cord.txt");
     vector<pair<float, float>>cord_schools;
@@ -486,20 +494,19 @@ int main() {
     auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);*/
 
 
-    map<pair<float, float>, pair<int, float>> ef1_first, ef2_first;
-    pair<int, int>sum_dis = { 0,0 }, sum_dis_first = { 0,0 };
-    pair<float, float>sum_ratio_dis = { 0,0 }, sum_ratio_dis_first = { 0,0 };
+    pair<int, float> x_ef1_first, x_ef2_first;
 
-
-    auto sol_1 = solution_1(ef1_first, houses);
+    fl = true;//без учета детей
+    auto sol_1 = solution_1(x_ef1_first, houses);
     auto ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
-    for (auto i : ef_1) sum_dis.first += i.second.first, sum_ratio_dis.first += i.second.second;
-    for (auto i : ef1_first) sum_dis_first.first += i.second.first, sum_ratio_dis_first.first += i.second.second;
 
-   
+    fl = false;//с учетом детей
+    auto sol_2 = solution_1(x_ef2_first, houses);
+    auto ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
+
+
     //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
     //auto ef_2 = calcEf(sol_2.first, sol_2.second);
-    //for (auto i : ef_2) sum_dis.second += i.second.first, sum_ratio_dis.second += i.second.second;
-    //for (auto i : ef2_first) sum_dis_first.second += i.second.first, sum_ratio_dis_first.second += i.second.second;
+
     return 0;
 }
