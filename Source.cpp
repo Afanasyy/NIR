@@ -30,34 +30,6 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
 bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&);
 
 
-
-bool smart_search(const map<int, int>& list, const int& lower, const int& upper, vector<int>ans) {
-    auto max = --list.end();
-    int l = lower, u = upper;
-    bool flag = true;
-    while (true) {
-        while (flag) {
-            for (int i = 0; i < max->second; ++i)
-                if (u - max->first > 0) {
-                    l -= max->first;
-                    u -= max->first;
-                    flag = false;
-                }
-                else {
-                    --max;
-                    if (flag) flag = true;
-                    break;
-                }
-        }
-        if (l < 0 && u > 0)
-            break;
-        else {
-
-        }
-    }
-    return true;
-}
-
 int main() {
     setlocale(LC_ALL, "Russian");
     setlocale(LC_NUMERIC, "C");
@@ -67,9 +39,9 @@ int main() {
 
     map<int, int>t;
     vector<int>w;
-    for (int i = 1; i <= 10; ++i) 
-        ++t[rand() % COUNT_CHILDREN + 1];    
-    smart_search(t,25,30,w);
+    for (int i = 1; i <= 10; ++i)
+        ++t[rand() % COUNT_CHILDREN + 1];
+    smart_search(t, 25, 30, w);
 
     bool flag = false; // true - ручной ввод; false - случайная генерация
     ifstream file("cord.txt");
@@ -163,6 +135,33 @@ int main() {
     //auto ef_2 = calcEf(sol_2.first, sol_2.second);
 
     return 0;
+}
+
+bool smart_search(const map<int, int>& list, const int& lower, const int& upper, vector<int>ans) {
+    auto max = --list.end();
+    int l = lower, u = upper;
+    bool flag = true;
+    while (true) {
+        while (flag) {
+            for (int i = 0; i < max->second; ++i)
+                if (u - max->first > 0) {
+                    l -= max->first;
+                    u -= max->first;
+                    flag = false;
+                }
+                else {
+                    --max;
+                    if (flag) flag = true;
+                    break;
+                }
+        }
+        if (l < 0 && u > 0)
+            break;
+        else {
+
+        }
+    }
+    return true;
 }
 
 pair<int, float> calcEf(const map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& B, const map<pair<float, float>, int>& s_B) {
