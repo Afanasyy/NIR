@@ -16,18 +16,78 @@ using namespace std;
 map<pair<float, float>, int>const_count;
 bool fl;
 
+class House {
+public:
+    House(const int& children, const map<pair<float, float>, int>& dis, const pair<float, float> cord, const map<pair<float, float>, float>& ratio_dis, const int& id) {
+        this->children = children;
+        this->dis = dis;
+        this->cord = cord;
+        this->ratio_dis = ratio_dis;
+        this->id = id;
+    }
+    pair<float, float> getCord() {
+        return cord;
+    }
+    int getChildren() {
+        return children;
+    }
+    map<pair<float, float>, int> getDis() {
+        return dis;
+    }
+    map<pair<float, float>, float> getRatio_Dis() {
+        return ratio_dis;
+    }
+    pair<pair<float, float>, float> getMin_dis() {
+        pair<pair<float, float>, float> m;
+        m.second = INT_MAX;
+        for (auto i : dis)
+            if (i.second < m.second) m = i;
+        return m;
+    }
+    float getDifference(const pair<float, float>& school_m, const pair<float, float>& school_M) {
+        return abs(dis[school_m] - dis[school_M]);
+    }
+    float getDifference_r(const pair<float, float>& school_m, const pair<float, float>& school_M) {
+        return abs(ratio_dis[school_m] - ratio_dis[school_M]);
+    }
+    int getID() {
+        return id;
+    }
+    int getDisToSch(const pair<float, float>& sch) {
+        for (auto it : dis) {
+            if (it.first == sch) return it.second;
+        }
+    }
+    pair<pair<float, float>, int>getNearDis(const int& cur) {
+        vector<pair<pair<float, float>, int>>tmp;
+        for (const auto& it : dis) tmp.push_back(it);
+        sort(tmp.begin(), tmp.end(), [](auto& l, auto& r)->bool {return l.second > r.second; });
+        for (const auto& it : tmp) if (it.second < cur) return it;
+        return { {0,0},0 };
+    }
+    float getRatioDisToSch(const pair<float, float>& sch) {
+        for (auto it : ratio_dis) {
+            if (it.first == sch) return it.second;
+        }
+    }
+private:
+    map<pair<float, float>, int>dis;
+    int children;
+    pair<float, float>cord;
+    map<pair<float, float>, float>ratio_dis;
+    int id;
+};
 
-class House;
-bool smart_search(const map<int, int>&, const int&, const int&, vector<int>);
-pair<int, float> calcEf(const map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, const map<pair<float, float>, int>&);
-int calcCountClasses(const int&);
-void setClasses(const bool&, const int&, map<pair<float, float>, int>);
-float calculateTheDistance(const float&, const float&, const float&, const float&);
-pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(pair<int, float>&, vector<pair<House, int>>&);
-pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&);
-bool foo(vector<pair<float, float>>&, const pair<float, float>&);
-bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, pair<float, float>& sch, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&);
-bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&);
+auto calcEf(const map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, const map<pair<float, float>, int>&) ->pair<int, float>;
+auto calcCountClasses(const int&)->int;
+auto setClasses(const bool&, const int&, map<pair<float, float>, int>)->void;
+auto foo(vector<pair<float, float>>&, const pair<float, float>&)->bool;
+auto getH(map<pair<float, float>, int>&, pair<int, pair<float, float>>&, pair<float, float>&, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&)->bool;
+auto smart_search(const vector<pair<int, int>>&, int, int, vector<int>, int)->pair<vector<pair<int, int>>, bool>;
+auto solution_1(pair<int, float>&, vector<pair<House, int>>&)->pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>>;
+auto getHs(map<pair<float, float>, int>&, int&, vector<int>& , pair<float, float>& , pair<float, float>& , map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&)->bool;
+auto solution_1(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&)->pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>>;
+auto calculateTheDistance(const float&, const float&, const float&, const float&)->float;
 
 
 int main() {
@@ -35,14 +95,7 @@ int main() {
     setlocale(LC_NUMERIC, "C");
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    //srand(time(0));
-
-    map<int, int>t;
-    vector<int>w;
-    for (int i = 1; i <= 10; ++i)
-        ++t[rand() % COUNT_CHILDREN + 1];
-    smart_search(t, 25, 30, w);
-
+    //srand(time(0)); 
     bool flag = false; // true - ручной ввод; false - случайна€ генераци€
     ifstream file("cord.txt");
     vector<pair<float, float>>cord_schools;
@@ -116,8 +169,8 @@ int main() {
         }
     }
 
-    /*auto sol_0 = solution_1(ans, houses);
-    auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);*/
+    auto sol_0 = solution_1(ans, houses);
+    auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
 
 
     pair<int, float> x_ef1_first, x_ef2_first;
@@ -126,9 +179,9 @@ int main() {
     //auto sol_1 = solution_1(x_ef1_first, houses);
     //auto ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
 
-    fl = false;//с учетом детей
-    auto sol_2 = solution_1(x_ef2_first, houses);
-    auto ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
+    //fl = false;//с учетом детей
+    //auto sol_2 = solution_1(x_ef2_first, houses);
+    //auto ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
 
 
     //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
@@ -137,31 +190,17 @@ int main() {
     return 0;
 }
 
-bool smart_search(const map<int, int>& list, const int& lower, const int& upper, vector<int>ans) {
-    auto max = --list.end();
-    int l = lower, u = upper;
-    bool flag = true;
-    while (true) {
-        while (flag) {
-            for (int i = 0; i < max->second; ++i)
-                if (u - max->first > 0) {
-                    l -= max->first;
-                    u -= max->first;
-                    flag = false;
-                }
-                else {
-                    --max;
-                    if (flag) flag = true;
-                    break;
-                }
-        }
-        if (l < 0 && u > 0)
-            break;
-        else {
 
-        }
-    }
-    return true;
+float calculateTheDistance(const float& a1, const float& b1, const float& a2, const float& b2) {
+    float cl1 = cos(a1 * numbers::pi / 180);
+    float cl2 = cos(a2 * numbers::pi / 180);
+    float sl1 = sin(a1 * numbers::pi / 180);
+    float sl2 = sin(a2 * numbers::pi / 180);
+    float cdelta = cos(b2 * numbers::pi / 180 - b1 * numbers::pi / 180);
+    float sdelta = sin(b2 * numbers::pi / 180 - b1 * numbers::pi / 180);
+    float y = sqrt(pow(cl2 * sdelta, 2) + pow(cl1 * sl2 - sl1 * cl2 * cdelta, 2));
+    float x = sl1 * sl2 + cl1 * cl2 * cdelta;
+    return atan2(y, x) * EARTH_RADIUS;
 }
 
 pair<int, float> calcEf(const map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& B, const map<pair<float, float>, int>& s_B) {
@@ -211,107 +250,6 @@ void setClasses(const bool& flag, const int& count_classes, map<pair<float, floa
         }
         for (auto it : templ_classes) const_count[it.first] = it.second;
     }
-}
-
-float calculateTheDistance(const float& a1, const float& b1, const float& a2, const float& b2) {
-    float cl1 = cos(a1 * numbers::pi / 180);
-    float cl2 = cos(a2 * numbers::pi / 180);
-    float sl1 = sin(a1 * numbers::pi / 180);
-    float sl2 = sin(a2 * numbers::pi / 180);
-    float cdelta = cos(b2 * numbers::pi / 180 - b1 * numbers::pi / 180);
-    float sdelta = sin(b2 * numbers::pi / 180 - b1 * numbers::pi / 180);
-    float y = sqrt(pow(cl2 * sdelta, 2) + pow(cl1 * sl2 - sl1 * cl2 * cdelta, 2));
-    float x = sl1 * sl2 + cl1 * cl2 * cdelta;
-    return atan2(y, x) * EARTH_RADIUS;
-}
-
-pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(pair<int, float>& ef, vector<pair<House, int>>& houses) {
-    map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
-    //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
-    map<pair<float, float>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
-    int s = 0;
-    for (auto house : houses) {
-        auto tmp = house.first.getMin_dis();//минимальное рассто€ние
-        auto t = vector<pair<float, float>>(0);
-        A[tmp.first].push_back({ {{ house.first.getCord(),{tmp.second,house.first.getChildren()} },t}, house.first.getID() });
-        //распределение домов к школе с максимальным коэф
-        s_A[tmp.first] += house.first.getChildren();//подсчет суммы детей в школе
-        count_class[tmp.first] = 0;
-        s += house.first.getChildren();
-    }
-
-    bool flag = false;
-
-    auto EF = calcEf(A, s_A);
-    ef = EF;
-
-    auto count = calcCountClasses(s);
-
-    int count_iteration = 0;
-    bool flag2 = true;
-    while (!flag) {
-        B = A;
-        s_B = s_A;
-        pair<int, pair<float, float>>h;
-        pair<float, float>sch;
-        while (!(flag = getH(s_B, h, sch, B, houses))) {//поиск дома дл€ перекидывани€
-            if (h.first == -1) {
-                cout << " ол-во классов увеличенно на 1\n";
-                count++;
-                flag2 = false;
-                setClasses(true, count, count_class);//true - перераспределение; false - копирование
-                break;
-            }
-            int* ptr = &(B[h.second][h.first].first.first.second.second);
-            s_B[h.second] -= *ptr;
-            s_B[sch] += *ptr;
-            B[h.second][h.first].first.first.second.first = houses[B[h.second][h.first].second].first.getDisToSch(sch);
-            B[h.second][h.first].first.second.push_back(h.second);
-            B[sch].push_back(B[h.second][h.first]);
-            B[h.second].erase(B[h.second].begin() + h.first);
-            ++count_iteration;
-        }
-    }
-    return { flag2, {B,s_B} };
-}
-
-pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>& ans, vector<pair<House, int>>& houses) {
-    map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
-    map<pair<float, float>, int> s_A, s_B;//сумма детей в каждой школе
-    for (const auto& it : ans) {
-        s_A[it.first] = it.second.second;
-        for (const auto& it2 : it.second.first)
-            A[it.first].push_back({ {{{it2.first},{houses[it2.second.second].first.getDisToSch(it.first),it2.second.first}},vector<pair<float, float>>(0)},it2.second.second });
-    }
-    auto t = calcEf(A, s_A);
-
-    B = A;
-    s_B = s_A;
-
-    int h_o, count_iteration = 0;
-    vector<int>h_in;
-    pair<float, float>s_o, s_in;
-    while (!getHs(s_B, h_o, h_in, s_o, s_in, B, houses)) {
-        int tmp;
-        for (int i = 0; i < B[s_o].size(); ++i) if (B[s_o][i].second == h_o) { tmp = i; break; }
-        int* ptr = &(B[s_o][tmp].first.first.second.second);
-        s_B[s_o] -= *ptr;
-        s_B[s_in] += *ptr;
-        B[s_o][tmp].first.first.second.first = houses[B[s_o][tmp].second].first.getDisToSch(s_in);
-        B[s_in].push_back(B[s_o][tmp]);
-        B[s_o].erase(B[s_o].begin() + tmp);
-        for (const auto& it : h_in) {
-            for (int i = 0; i < B[s_in].size(); ++i) if (B[s_in][i].second == it) { tmp = i; break; }
-            int* ptr = &(B[s_in][tmp].first.first.second.second);
-            s_B[s_in] -= *ptr;
-            s_B[s_o] += *ptr;
-            B[s_in][tmp].first.first.second.first = houses[B[s_in][tmp].second].first.getDisToSch(s_o);
-            B[s_o].push_back(B[s_in][tmp]);
-            B[s_in].erase(B[s_in].begin() + tmp);
-        }
-        ++count_iteration;
-    }
-    return{ true,{B,s_B} };
 }
 
 bool foo(vector<pair<float, float>>& v, const pair<float, float>& t) {
@@ -384,23 +322,94 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
     if (c == const_count.size()) return true;
 }
 
+pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(pair<int, float>& ef, vector<pair<House, int>>& houses) {
+    map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
+    //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
+    map<pair<float, float>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
+    int s = 0;
+    for (auto house : houses) {
+        pair<pair<float, float>, float> tmp = house.first.getMin_dis();//минимальное рассто€ние
+        auto t = vector<pair<float, float>>(0);
+        A[tmp.first].push_back({ {{ house.first.getCord(),{tmp.second,house.first.getChildren()} },t}, house.first.getID() });
+        //распределение домов к школе с максимальным коэф
+        s_A[tmp.first] += house.first.getChildren();//подсчет суммы детей в школе
+        count_class[tmp.first] = 0;
+        s += house.first.getChildren();
+    }
+
+    bool flag = false;
+
+    auto EF = calcEf(A, s_A);
+    ef = EF;
+
+    auto count = calcCountClasses(s);
+
+    int count_iteration = 0;
+    bool flag2 = true;
+    while (!flag) {
+        B = A;
+        s_B = s_A;
+        pair<int, pair<float, float>>h;
+        pair<float, float>sch;
+        while (!(flag = getH(s_B, h, sch, B, houses))) {//поиск дома дл€ перекидывани€
+            if (h.first == -1) {
+                cout << " ол-во классов увеличенно на 1\n";
+                count++;
+                flag2 = false;
+                setClasses(true, count, count_class);//true - перераспределение; false - копирование
+                break;
+            }
+            int* ptr = &(B[h.second][h.first].first.first.second.second);
+            s_B[h.second] -= *ptr;
+            s_B[sch] += *ptr;
+            B[h.second][h.first].first.first.second.first = houses[B[h.second][h.first].second].first.getDisToSch(sch);
+            B[h.second][h.first].first.second.push_back(h.second);
+            B[sch].push_back(B[h.second][h.first]);
+            B[h.second].erase(B[h.second].begin() + h.first);
+            ++count_iteration;
+        }
+    }
+    return { flag2, {B,s_B} };
+}
+
+pair<vector<pair<int, int>>, bool> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<int, int>>last_list, int last_ind) {
+    if (lower <= 0 && upper >= 0) return { last_list,true };
+    if (last_ind == -1) return { vector<pair<int,int>>(),false };
+    int l = lower, u = upper;
+    for (int i = last_ind; i >= 0; --i)
+        if (u - list[i].first >= 0) {
+            last_list.push_back(list[i]);
+            l -= list[i].first;
+            u -= list[i].first;
+            auto y = smart_search(list, l, u, last_list, i - 1);
+            if (!y.first.empty() && y.first[0].first == -1 && !y.second)
+                return smart_search(list, lower, upper, vector<pair<int, int>>(), last_ind - 1);
+            else if ((y.first.empty() && y.second) || (!y.first.empty() && y.first[0].first != -1 && y.second)) return { y.first,true };
+        }
+    return { vector<pair<int,int>>(1) = { {-1,-1} }, false };
+}
+
 bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& A, vector<pair<House, int>>& houses) {
     for (const auto& it : A)
         for (const auto& it2 : it.second) {
             int children = it2.first.first.second.second;
             auto dis = houses[it2.second].first.getNearDis(it2.first.first.second.first);
             if (dis.second == 0) continue;
-            map<int, int>list;
+            vector<pair<int, int>>list;
             for (const auto& it3 : A[dis.first])
-                if (houses[it3.second].first.getDisToSch(dis.first) < it3.first.first.second.first)
-                    list[it3.first.first.second.second]++;
+                if (houses[it3.second].first.getDisToSch(it.first) < it3.first.first.second.first)
+                    list.push_back({ it3.first.first.second.second,it3.second });
             int lower = s_B[dis.first] - (28 * const_count[dis.first]) + children;
             int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
-            vector<int>ans;
+            vector<pair<int,int>>tmp;
+            vector<int>tmp2;
             if (list.empty()) continue;
-            if (smart_search(list, lower, upper, ans)) {
+            sort(list.begin(), list.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
+            auto ans = smart_search(list, lower, upper, tmp, list.size() - 1);
+            if (ans.second) {
+                for (auto it : ans.first) tmp2.push_back(it.second);
                 h_o = it2.second;
-                h_in = ans;
+                h_in = tmp2;
                 s_o = it.first;
                 s_in = dis.first;
                 return false;
@@ -409,68 +418,45 @@ bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<
     return true;
 }
 
-class House {
-public:
-    House(const int& children, const map<pair<float, float>, int>& dis, const pair<float, float> cord, const map<pair<float, float>, float>& ratio_dis, const int& id) {
-        this->children = children;
-        this->dis = dis;
-        this->cord = cord;
-        this->ratio_dis = ratio_dis;
-        this->id = id;
+pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>& ans, vector<pair<House, int>>& houses) {
+    map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
+    map<pair<float, float>, int> s_A, s_B;//сумма детей в каждой школе
+    for (const auto& it : ans) {
+        s_A[it.first] = it.second.second;
+        for (const auto& it2 : it.second.first)
+            A[it.first].push_back({ {{{it2.first},{houses[it2.second.second].first.getDisToSch(it.first),it2.second.first}},vector<pair<float, float>>(0)},it2.second.second });
     }
-    pair<float, float> getCord() {
-        return cord;
-    }
-    int getChildren() {
-        return children;
-    }
-    map<pair<float, float>, int> getDis() {
-        return dis;
-    }
-    map<pair<float, float>, float> getRatio_Dis() {
-        return ratio_dis;
-    }
-    pair<pair<float, float>, float> getMin_dis() {
-        pair<pair<float, float>, float> m;
-        m.second = INT_MAX;
-        for (auto i : dis)
-            if (i.second < m.second) m = i;
-        return m;
-    }
-    float getDifference(const pair<float, float>& school_m, const pair<float, float>& school_M) {
-        return abs(dis[school_m] - dis[school_M]);
-    }
-    float getDifference_r(const pair<float, float>& school_m, const pair<float, float>& school_M) {
-        return abs(ratio_dis[school_m] - ratio_dis[school_M]);
-    }
-    int getID() {
-        return id;
-    }
-    int getDisToSch(const pair<float, float>& sch) {
-        for (auto it : dis) {
-            if (it.first == sch) return it.second;
-        }
-    }
-    pair<pair<float, float>, int>getNearDis(const int& cur) {
-        vector<pair<pair<float, float>, int>>tmp;
-        for (const auto& it : dis) tmp.push_back(it);
-        sort(tmp.begin(), tmp.end(), [](auto& l, auto& r)->bool {return l.second > r.second; });
-        for (const auto& it : tmp) if (it.second < cur) return it;
-        return { {0,0},0 };
-    }
-    float getRatioDisToSch(const pair<float, float>& sch) {
-        for (auto it : ratio_dis) {
-            if (it.first == sch) return it.second;
-        }
-    }
-private:
-    map<pair<float, float>, int>dis;
-    int children;
-    pair<float, float>cord;
-    map<pair<float, float>, float>ratio_dis;
-    int id;
-};
 
+    auto t = calcEf(A, s_A);
+
+    B = A;
+    s_B = s_A;
+
+    int h_o, count_iteration = 0;
+    vector<int>h_in;
+    pair<float, float>s_o, s_in;
+    while (!getHs(s_B, h_o, h_in, s_o, s_in, B, houses)) {
+        int tmp;
+        for (int i = 0; i < B[s_o].size(); ++i) if (B[s_o][i].second == h_o) { tmp = i; break; }
+        int* ptr = &(B[s_o][tmp].first.first.second.second);
+        s_B[s_o] -= *ptr;
+        s_B[s_in] += *ptr;
+        B[s_o][tmp].first.first.second.first = houses[B[s_o][tmp].second].first.getDisToSch(s_in);
+        B[s_in].push_back(B[s_o][tmp]);
+        B[s_o].erase(B[s_o].begin() + tmp);
+        for (const auto& it : h_in) {
+            for (int i = 0; i < B[s_in].size(); ++i) if (B[s_in][i].second == it) { tmp = i; break; }
+            int* ptr = &(B[s_in][tmp].first.first.second.second);
+            s_B[s_in] -= *ptr;
+            s_B[s_o] += *ptr;
+            B[s_in][tmp].first.first.second.first = houses[B[s_in][tmp].second].first.getDisToSch(s_o);
+            B[s_o].push_back(B[s_in][tmp]);
+            B[s_in].erase(B[s_in].begin() + tmp);
+        }
+        ++count_iteration;
+    }
+    return{ true,{B,s_B} };
+}
 
 //void sorting(const bool& flag, const pair<float, float>& school_m, const pair<float, float>& school_M, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& map, vector<pair<House, int>>& houses) {
 //    sort(map[school_M].begin(), map[school_M].end(),
@@ -555,3 +541,4 @@ private:
 //    }
 //    return { B,s_B };
 //}
+
