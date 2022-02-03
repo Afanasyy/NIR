@@ -58,12 +58,13 @@ public:
             if (it.first == sch) return it.second;
         }
     }
-    pair<pair<float, float>, int>getNearDis(const int& cur) {
+    vector<pair<float, float>>getNearDis(const int& cur) {
+        vector<pair<float, float>>ans;
         vector<pair<pair<float, float>, int>>tmp;
         for (const auto& it : dis) tmp.push_back(it);
         sort(tmp.begin(), tmp.end(), [](auto& l, auto& r)->bool {return l.second > r.second; });
-        for (const auto& it : tmp) if (it.second < cur) return it;
-        return { {0,0},0 };
+        for (const auto& it : tmp) if (it.second < cur) ans.push_back(it.first);
+        return ans;
     }
     float getRatioDisToSch(const pair<float, float>& sch) {
         for (auto it : ratio_dis) {
@@ -392,28 +393,36 @@ pair<vector<pair<int, int>>, bool> smart_search(const vector<pair<int, int>>& li
 bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& A, vector<pair<House, int>>& houses) {
     for (const auto& it : A)
         for (const auto& it2 : it.second) {
+            h_in = vector<int>();
             int children = it2.first.first.second.second;
             auto dis = houses[it2.second].first.getNearDis(it2.first.first.second.first);
-            if (dis.second == 0) continue;
-            vector<pair<int, int>>list;
-            for (const auto& it3 : A[dis.first])
-                if (houses[it3.second].first.getDisToSch(it.first) < it3.first.first.second.first)
-                    list.push_back({ it3.first.first.second.second,it3.second });
-            int lower = s_B[dis.first] - (28 * const_count[dis.first]) + children;
-            int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
-            vector<pair<int,int>>tmp;
-            vector<int>tmp2;
-            if (list.empty()) continue;
-            sort(list.begin(), list.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
-            auto ans = smart_search(list, lower, upper, tmp, list.size() - 1);
-            if (ans.second) {
-                for (auto it : ans.first) tmp2.push_back(it.second);
-                h_o = it2.second;
-                h_in = tmp2;
-                s_o = it.first;
-                s_in = dis.first;
-                return false;
+            if (dis.empty()) continue;
+            int best = 0;
+            for (const auto& it4 : dis) {
+                vector<pair<int, int>>list;
+                for (const auto& it3 : A[it4])
+                    if (houses[it3.second].first.getDisToSch(it.first) < it3.first.first.second.first)
+                        list.push_back({ it3.first.first.second.second,it3.second });
+                int lower = s_B[it4] - (28 * const_count[it4]) + children;
+                int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
+                vector<pair<int, int>>tmp;
+                vector<int>tmp2;
+                if (list.empty()) continue;
+                sort(list.begin(), list.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
+                auto ans = smart_search(list, lower, upper, tmp, list.size() - 1);
+                if (ans.second) {
+                    int newb = abs(houses[it2.second].first.getDisToSch(it4) - it2.first.first.second.first) * children;
+                    for (const auto& it5 : ans.first) newb += (abs(houses[it5.second].first.getDisToSch(it4) - houses[it5.second].first.getDisToSch(it.first)) * houses[it5.second].first.getChildren());
+                    if (newb > best) {
+                        for (auto it : ans.first) tmp2.push_back(it.second);
+                        h_o = it2.second;
+                        h_in = tmp2;
+                        s_o = it.first;
+                        s_in = it4;
+                    }
+                }
             }
+            if (!h_in.empty()) return false;
         }
     return true;
 }
