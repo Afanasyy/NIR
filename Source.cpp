@@ -154,7 +154,11 @@ int main() {
     }
 
 
-    auto count = calcCountClasses(sum);    
+    auto count = calcCountClasses(sum); 
+    if (count == -1) {
+        cout << "Невозможно распределить при таком кол-ве детей\n";
+        return 0;
+    }
     setClasses(true, count, templ_classes);
 
     sort(numbers.begin(), numbers.end(), [](auto& l, auto& r)->bool {return l.second.first < r.second.first; });
@@ -234,10 +238,8 @@ int calcCountClasses(const int& s) {
         if (mmin.second < m)
             mmin = { i,m };
     }
-    if (ans.empty()) {
-        cout << "Кол-во классов по верхней границе\n";
-        return ceil(upper);
-    }
+    if (ans.empty())         
+        return -1;    
     return ans[mmin.first];
 }
 
