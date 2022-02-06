@@ -84,7 +84,7 @@ auto calcCountClasses(const int&)->int;
 auto setClasses(const bool&, const int&, map<pair<float, float>, int>)->void;
 auto foo(vector<pair<float, float>>&, const pair<float, float>&)->bool;
 auto getH(map<pair<float, float>, int>&, pair<int, pair<float, float>>&, pair<float, float>&, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&)->bool;
-auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, bool>>, int, int)->vector<pair<vector<pair<int, int>>, bool>>;
+auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, int>>, int, int)->vector<pair<vector<pair<int, int>>, int>>;
 auto solution_1(pair<int, float>&, vector<pair<House, int>>&)->pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>>;
 auto getHs(map<pair<float, float>, int>&, int&, vector<int>& , pair<float, float>& , pair<float, float>& , map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&)->bool;
 auto solution_1(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&)->pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>>;
@@ -96,13 +96,13 @@ int main() {
     setlocale(LC_NUMERIC, "C");
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    srand(time(0)); 
+    srand(time(0));
 
 
-    /*vector<pair<int,int>>a;
-    for (int i = 0; i < 10; ++i) a.push_back({ rand() % COUNT_CHILDREN + 1,rand() });
+    vector<pair<int, int>>a = { {4, 7},{7, 14},{8, 6},{8, 3},{9, 11},{9, 8},{11, 4} };
+    //for (int i = 0; i < 10; ++i) a.push_back({ rand() % COUNT_CHILDREN + 1,rand() });
     sort(a.begin(), a.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
-    auto y = smart_search(a, 20, 25, vector<pair<vector<pair<int, int>>,bool>>(), a.size() - 1, 1);*/
+    auto y = smart_search(a, 20, 21, vector<pair<vector<pair<int, int>>,int>>(), a.size() - 1, 1);
 
 
     bool flag = false; // true - ручной ввод; false - случайна€ генераци€
@@ -154,7 +154,12 @@ int main() {
     }
 
 
-    auto count = calcCountClasses(sum);    
+    auto count = calcCountClasses(sum);
+
+    if (count == -1) {
+        cout << "Ќевозможно распределить такое число детей по классам с учетом ограничений\n";
+        return 0;
+    }
     setClasses(true, count, templ_classes);
 
     sort(numbers.begin(), numbers.end(), [](auto& l, auto& r)->bool {return l.second.first < r.second.first; });
@@ -178,8 +183,10 @@ int main() {
         }
     }
 
-    auto sol_0 = solution_1(ans, houses);
-    auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
+    if (tmp.empty()) {
+        auto sol_0 = solution_1(ans, houses);
+        auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
+    }
 
 
     pair<int, float> x_ef1_first, x_ef2_first;
@@ -194,8 +201,7 @@ int main() {
 
 
     //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
-    //auto ef_2 = calcEf(sol_2.first, sol_2.second);
-
+    //auto ef_2 = calcEf(sol_2.first, sol_2.second);    
     return 0;
 }
 
@@ -234,10 +240,8 @@ int calcCountClasses(const int& s) {
         if (mmin.second < m)
             mmin = { i,m };
     }
-    if (ans.empty()) {
-        cout << " ол-во классов по верхней границе\n";
-        return ceil(upper);
-    }
+    if (ans.empty())         
+        return -1;    
     return ans[mmin.first];
 }
 
@@ -381,13 +385,13 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
     return { flag2, {B,s_B} };
 }
 
-vector<pair<vector<pair<int, int>>, bool>> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<vector<pair<int, int>>, bool>>last_list, int last_ind, int lvl) {
+vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<vector<pair<int, int>>, int>>last_list, int last_ind, int lvl) {
     if (lower <= 0 && upper >= 0) {
-        last_list.back().second = true;
+        last_list.back().second = 1;
         return last_list;
     }
     if (last_ind == -1) {
-        last_list.back().second = false;
+        last_list.back().second = 0;
         return last_list;
     }
     int l = lower, u = upper;
@@ -397,11 +401,35 @@ vector<pair<vector<pair<int, int>>, bool>> smart_search(const vector<pair<int, i
             l -= list[i].first;
             u -= list[i].first;
             auto y = smart_search(list, l, u, last_list, i - 1, lvl + 1);
+            if (y.back().second==1) {
+                auto t = y;
+                t.back().first.pop_back();
+                y.push_back(t.back());
+                auto z= smart_search(list, lower, upper, y, i - 1, lvl);      
+                if (z.back().second == 1) z.back().second = 2;
+                if (z.back().second == 0)
+                    z.pop_back();
+                return z;
+            }
             if (y.empty())
-                return vector<pair<vector<pair<int, int>>, bool>>();
-            if (!y.back().first.empty() && y.back().first[0].first == -1 && !y.back().second)
-                return smart_search(list, lower, upper, vector<pair<vector<pair<int, int>>, bool>>(), last_ind - 1, lvl + 1);
-            else if ((y.back().first.empty() && y.back().second) || (!y.back().first.empty() && y.back().first[0].first != -1 && y.back().second)) {
+                return vector<pair<vector<pair<int, int>>, int>>();
+            if (!last_list.empty() && last_list.back().second==0 && y.back().first[0].first == -1) {
+                auto t = last_list;
+                t.back().first.pop_back();
+                auto z = smart_search(list, lower, upper, t, i - 1, lvl);
+            }
+            else if (!last_list.empty() && last_list.back().second==1 && y.back().first[0].first == -1) {
+                last_list.back().first.pop_back();
+                auto z = smart_search(list, lower, upper, last_list, i - 1, lvl);
+                if (z.back().first[0].first == -1) {
+                    last_list.pop_back();
+                    return last_list;
+                }
+                else return z;
+            }                
+            if (!y.back().first.empty() && y.back().first[0].first == -1 && y.back().second==0)
+                return smart_search(list, lower, upper, vector<pair<vector<pair<int, int>>, int>>(), last_ind - 1, lvl);
+            else if ((y.back().first.empty() && y.back().second==1) || (!y.back().first.empty() && y.back().first[0].first != -1 && (y.back().second==1|| y.back().second == 2))) {
                 if (lvl == 1) {
                     y.push_back({});
                     auto x = smart_search(list, lower, upper, y, i - 1, lvl);
@@ -411,7 +439,7 @@ vector<pair<vector<pair<int, int>>, bool>> smart_search(const vector<pair<int, i
                 return y;
             }
         }
-    return  { {{{-1,-1}},false} };
+    return  { {{{-1,-1}},0} };
 }
 
 bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& A, vector<pair<House, int>>& houses) {
@@ -425,26 +453,26 @@ bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<
             for (const auto& it4 : dis) {
                 vector<pair<int, int>>list;
                 for (const auto& it3 : A[it4])
-                    if (houses[it3.second].first.getDisToSch(it.first) < it3.first.first.second.first)
-                        list.push_back({ it3.first.first.second.second,it3.second });
+                    list.push_back({ it3.first.first.second.second,it3.second });
                 int lower = s_B[it4] - (28 * const_count[it4]) + children;
                 int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
-                vector<pair<int, int>>tmp;
-                vector<int>tmp2;
                 if (list.empty()) continue;
                 sort(list.begin(), list.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
-                /*auto ans = smart_search(list, lower, upper, tmp, list.size() - 1);
-                if (ans.second) {
-                    int newb = abs(houses[it2.second].first.getDisToSch(it4) - it2.first.first.second.first) * children;
-                    for (const auto& it5 : ans.first) newb += (abs(houses[it5.second].first.getDisToSch(it4) - houses[it5.second].first.getDisToSch(it.first)) * houses[it5.second].first.getChildren());
-                    if (newb > best) {
-                        for (auto it : ans.first) tmp2.push_back(it.second);
-                        h_o = it2.second;
+                auto ans = smart_search(list, lower, upper, { {{},false} }, list.size() - 1, 1);
+                if (ans[0].second) {
+                    pair<int, int> max_ef = { INT_MIN,-1 };
+                    for (int i = 0; i < ans.size() - 1; ++i) {
+                        int cur_ef = 0;
+                        for (const auto& it5 : ans[i].first) 
+                            cur_ef += (houses[it5.second].first.getDisToSch(it4) - houses[it5.second].first.getDisToSch(it.first));
+                        if (cur_ef > max_ef.first) max_ef = { cur_ef,i };
+                    }
+                        /*h_o = it2.second;
                         h_in = tmp2;
                         s_o = it.first;
-                        s_in = it4;
-                    }
-                }*/
+                        s_in = it4;*/
+                    
+                }
             }
             if (!h_in.empty()) return false;
         }
