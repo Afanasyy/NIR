@@ -96,7 +96,7 @@ int main() {
     setlocale(LC_NUMERIC, "C");
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    //srand(time(0)); 
+    srand(time(0)); 
     bool flag = false; // true - ручной ввод; false - случайная генерация
     ifstream file("cord.txt");
     vector<pair<float, float>>cord_schools;
@@ -176,13 +176,13 @@ int main() {
 
     pair<int, float> x_ef1_first, x_ef2_first;
 
-    //fl = true;//без учета детей
-    //auto sol_1 = solution_1(x_ef1_first, houses);
-    //auto ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
+    fl = true;//без учета детей
+    auto sol_1 = solution_1(x_ef1_first, houses);
+    auto ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
 
-    //fl = false;//с учетом детей
-    //auto sol_2 = solution_1(x_ef2_first, houses);
-    //auto ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
+    fl = false;//с учетом детей
+    auto sol_2 = solution_1(x_ef2_first, houses);
+    auto ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
 
 
     //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
