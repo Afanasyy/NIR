@@ -84,7 +84,7 @@ auto calcCountClasses(const int&)->int;
 auto setClasses(const bool&, const int&, map<pair<float, float>, int>)->void;
 auto foo(vector<pair<float, float>>&, const pair<float, float>&)->bool;
 auto getH(map<pair<float, float>, int>&, pair<int, pair<float, float>>&, pair<float, float>&, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&)->bool;
-auto smart_search(const vector<pair<int, int>>&, int, int, vector<int>, int)->pair<vector<pair<int, int>>, bool>;
+auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, bool>>, int, int)->vector<pair<vector<pair<int, int>>, bool>>;
 auto solution_1(pair<int, float>&, vector<pair<House, int>>&)->pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>>;
 auto getHs(map<pair<float, float>, int>&, int&, vector<int>& , pair<float, float>& , pair<float, float>& , map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&)->bool;
 auto solution_1(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&)->pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>>;
@@ -97,6 +97,14 @@ int main() {
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
     srand(time(0)); 
+
+
+    /*vector<pair<int,int>>a;
+    for (int i = 0; i < 10; ++i) a.push_back({ rand() % COUNT_CHILDREN + 1,rand() });
+    sort(a.begin(), a.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
+    auto y = smart_search(a, 20, 25, vector<pair<vector<pair<int, int>>,bool>>(), a.size() - 1, 1);*/
+
+
     bool flag = false; // true - ручной ввод; false - случайная генерация
     ifstream file("cord.txt");
     vector<pair<float, float>>cord_schools;
@@ -146,7 +154,7 @@ int main() {
     }
 
 
-    auto count = calcCountClasses(sum);
+    auto count = calcCountClasses(sum);    
     setClasses(true, count, templ_classes);
 
     sort(numbers.begin(), numbers.end(), [](auto& l, auto& r)->bool {return l.second.first < r.second.first; });
@@ -373,21 +381,37 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
     return { flag2, {B,s_B} };
 }
 
-pair<vector<pair<int, int>>, bool> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<int, int>>last_list, int last_ind) {
-    if (lower <= 0 && upper >= 0) return { last_list,true };
-    if (last_ind == -1) return { vector<pair<int,int>>(),false };
+vector<pair<vector<pair<int, int>>, bool>> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<vector<pair<int, int>>, bool>>last_list, int last_ind, int lvl) {
+    if (lower <= 0 && upper >= 0) {
+        last_list.back().second = true;
+        return last_list;
+    }
+    if (last_ind == -1) {
+        last_list.back().second = false;
+        return last_list;
+    }
     int l = lower, u = upper;
     for (int i = last_ind; i >= 0; --i)
         if (u - list[i].first >= 0) {
-            last_list.push_back(list[i]);
+            !last_list.empty() ? last_list.back().first.push_back(list[i]) : last_list.push_back({ { list[i] },false });
             l -= list[i].first;
             u -= list[i].first;
-            auto y = smart_search(list, l, u, last_list, i - 1);
-            if (!y.first.empty() && y.first[0].first == -1 && !y.second)
-                return smart_search(list, lower, upper, vector<pair<int, int>>(), last_ind - 1);
-            else if ((y.first.empty() && y.second) || (!y.first.empty() && y.first[0].first != -1 && y.second)) return { y.first,true };
+            auto y = smart_search(list, l, u, last_list, i - 1, lvl + 1);
+            if (y.empty())
+                return vector<pair<vector<pair<int, int>>, bool>>();
+            if (!y.back().first.empty() && y.back().first[0].first == -1 && !y.back().second)
+                return smart_search(list, lower, upper, vector<pair<vector<pair<int, int>>, bool>>(), last_ind - 1, lvl + 1);
+            else if ((y.back().first.empty() && y.back().second) || (!y.back().first.empty() && y.back().first[0].first != -1 && y.back().second)) {
+                if (lvl == 1) {
+                    y.push_back({});
+                    auto x = smart_search(list, lower, upper, y, i - 1, lvl);
+                    if (x.back().first.empty())
+                        return x;
+                }
+                return y;
+            }
         }
-    return { vector<pair<int,int>>(1) = { {-1,-1} }, false };
+    return  { {{{-1,-1}},false} };
 }
 
 bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& A, vector<pair<House, int>>& houses) {
@@ -409,7 +433,7 @@ bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<
                 vector<int>tmp2;
                 if (list.empty()) continue;
                 sort(list.begin(), list.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
-                auto ans = smart_search(list, lower, upper, tmp, list.size() - 1);
+                /*auto ans = smart_search(list, lower, upper, tmp, list.size() - 1);
                 if (ans.second) {
                     int newb = abs(houses[it2.second].first.getDisToSch(it4) - it2.first.first.second.first) * children;
                     for (const auto& it5 : ans.first) newb += (abs(houses[it5.second].first.getDisToSch(it4) - houses[it5.second].first.getDisToSch(it.first)) * houses[it5.second].first.getChildren());
@@ -420,7 +444,7 @@ bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<
                         s_o = it.first;
                         s_in = it4;
                     }
-                }
+                }*/
             }
             if (!h_in.empty()) return false;
         }
@@ -550,4 +574,3 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
 //    }
 //    return { B,s_B };
 //}
-
