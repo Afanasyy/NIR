@@ -9,12 +9,16 @@
 #include <ctime>
 #include <clocale> 
 #include <windows.h>
+#include "sqlite/sqlite3.h"
+
 #define EARTH_RADIUS 6372795 
 #define COUNT_CHILDREN 20
 using namespace std;
 
 map<pair<float, float>, int>const_count;
 bool fl;
+vector<vector<string>>data_data;
+vector<string>head;
 
 class House {
 public:
@@ -90,17 +94,25 @@ auto getHs(map<pair<float, float>, int>&, int&, vector<int>& , pair<float, float
 auto solution_1(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&)->pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>>;
 auto calculateTheDistance(const float&, const float&, const float&, const float&)->float;
 auto readFromTXT(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&)->int;
+auto readFromDB(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&)->void;
+auto UTF8to1251(string const&)->string;
+
+
 
 int main() {
     setlocale(LC_ALL, "Russian");
     setlocale(LC_NUMERIC, "C");
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    srand(time(0));
+    //srand(time(0));
 
     map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>ans;
     vector<pair<House, int>> houses;
-    int t = readFromTXT(ans, houses);
+
+    readFromDB(ans, houses);
+    
+    int t = readFromTXT(ans, houses);    
+
     if (t > 1) {
         auto sol_0 = solution_1(ans, houses);
         auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
@@ -120,6 +132,57 @@ int main() {
         else cout << "Ёффективное решение є2 не найдено\n";
     }
     return 0;
+}
+
+int callback(void* data, int argc, char** argv, char** azColName) {
+    int i;    
+    vector<string>tmp2;
+    for (i = 0; i < argc; i++) {
+        if(data_data.empty()) head.push_back(azColName[i]);
+        tmp2.push_back(UTF8to1251(argv[i]));
+        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+    
+    data_data.push_back(tmp2);
+    //printf("\n");
+    return 0;
+}
+
+void readFromDB(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>& ans, vector<pair<House, int>>& houses) {
+    sqlite3* db;
+    char* zErrMsg = 0;
+    int rc;
+    string sql;
+    string data = "Callback function called";
+    /* Open database */
+    rc = sqlite3_open("db.db", &db);
+
+    if (rc) {
+        cout << "Can't open database:\n" << sqlite3_errmsg(db);
+        return;
+    }
+    else
+        cout << "Opened database successfully\n";
+
+
+    /* Create SQL statement */
+    sql = "SELECT * from final";
+
+    /* Execute SQL statement */
+    rc = sqlite3_exec(db, sql.c_str(), callback, (void*)data.c_str(), &zErrMsg);
+
+    if (rc != SQLITE_OK) {
+        cout << "SQL error:\n" << zErrMsg;
+        sqlite3_free(zErrMsg);
+    }
+    else
+        cout << "Operation done successfully\n";
+    sqlite3_close(db);
+
+    for (const auto& it : data_data) {
+
+    }
+
 }
 
 int readFromTXT(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>& ans, vector<pair<House, int>>& houses) {
@@ -327,7 +390,7 @@ bool getH(map<pair<float, float>, int>& s_B, pair<int, pair<float, float>>& h, p
             return false;
         }
     }
-    if (c == const_count.size()) return true;
+    if (c == const_count.size()) return true;    
 }
 
 pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>> solution_1(pair<int, float>& ef, vector<pair<House, int>>& houses) {
@@ -488,6 +551,28 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
         ++count_iteration;
     }
     return{ true,{B,s_B} };
+}
+
+string UTF8to1251(string const& utf8) {
+    string s1251;
+    for (int i = 0; i < utf8.size(); ++i) {
+        int b1 = (unsigned char)utf8[i];
+        if ((b1 >> 5) == 6) {
+            int b2 = (unsigned char)utf8[i + 1];
+            if ((b1 == 208) && (b2 >= 144 && b2 <= 191))
+                s1251 += (char)(b2 + 48);
+            else if ((b1 == 209) && (b2 >= 128 && b2 <= 143))
+                s1251 += (char)(b2 + 112);
+            else if ((b1 == 208) && (b2 == 129))
+                s1251 += (char)(b2 + 39);
+            else if ((b1 == 209) && (b2 == 145))
+                s1251 += (char)(b2 + 39);
+            ++i;
+        }
+        else if ((b1 >> 7) == 0)
+            s1251 += b1;
+    }
+    return s1251;
 }
 
 //void sorting(const bool& flag, const pair<float, float>& school_m, const pair<float, float>& school_M, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& map, vector<pair<House, int>>& houses) {
