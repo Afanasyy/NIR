@@ -89,29 +89,45 @@ auto solution_1(pair<int, float>&, vector<pair<House, int>>&)->pair<bool, pair<m
 auto getHs(map<pair<float, float>, int>&, int&, vector<int>& , pair<float, float>& , pair<float, float>& , map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>&, vector<pair<House, int>>&)->bool;
 auto solution_1(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&)->pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>>>;
 auto calculateTheDistance(const float&, const float&, const float&, const float&)->float;
-
+auto readFromTXT(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>&, vector<pair<House, int>>&)->int;
 
 int main() {
     setlocale(LC_ALL, "Russian");
     setlocale(LC_NUMERIC, "C");
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    srand(time(0)); 
+    srand(time(0));
 
+    map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>ans;
+    vector<pair<House, int>> houses;
+    int t = readFromTXT(ans, houses);
+    if (t > 1) {
+        auto sol_0 = solution_1(ans, houses);
+        auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
 
-    /*vector<pair<int,int>>a;
-    for (int i = 0; i < 10; ++i) a.push_back({ rand() % COUNT_CHILDREN + 1,rand() });
-    sort(a.begin(), a.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
-    auto y = smart_search(a, 20, 25, vector<pair<vector<pair<int, int>>,bool>>(), a.size() - 1, 1);*/
+        pair<int, float> x_ef1_first, x_ef2_first, ef_1, ef_2;
 
+        fl = true;//без учета детей
+        auto sol_1 = solution_1(x_ef1_first, houses);
+        if (sol_1.first)
+            ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
+        else cout << "Ёффективное решение є1 не найдено\n";
 
+        fl = false;//с учетом детей
+        auto sol_2 = solution_1(x_ef2_first, houses);
+        if (sol_2.first)
+            ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
+        else cout << "Ёффективное решение є2 не найдено\n";
+    }
+    return 0;
+}
+
+int readFromTXT(map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>& ans, vector<pair<House, int>>& houses) {
     bool flag = false; // true - ручной ввод; false - случайна€ генераци€
     ifstream file("cord.txt");
     vector<pair<float, float>>cord_schools;
     vector<pair<pair<float, float>, int>>cord_houses;
-    vector<pair<House, int>>houses;
     map<pair<float, float>, int>templ_classes;
-    map<pair<float, float>, pair<vector<pair<pair<float, float>, pair<int, int>>>, int>>ans;
     while (!file.eof()) {//считывание из файла координат домов и школ
         string str;
         getline(file, str);
@@ -154,7 +170,7 @@ int main() {
     }
 
 
-    auto count = calcCountClasses(sum); 
+    auto count = calcCountClasses(sum);
     if (count == -1) {
         cout << "Ќевозможно распределить при таком кол-ве детей\n";
         return 0;
@@ -181,28 +197,9 @@ int main() {
             numbers.pop_back();
         }
     }
-
-    auto sol_0 = solution_1(ans, houses);
-    auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
-
-
-    pair<int, float> x_ef1_first, x_ef2_first;
-
-    fl = true;//без учета детей
-    auto sol_1 = solution_1(x_ef1_first, houses);
-    auto ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
-
-    fl = false;//с учетом детей
-    auto sol_2 = solution_1(x_ef2_first, houses);
-    auto ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
-
-
-    //auto sol_2 = solution_2(false, ef2_first, houses);//true - ratio_dis; false - dis 
-    //auto ef_2 = calcEf(sol_2.first, sol_2.second);
-
-    return 0;
+    if (tmp.empty()) return 2;
+    else return 1;
 }
-
 
 float calculateTheDistance(const float& a1, const float& b1, const float& a2, const float& b2) {
     float cl1 = cos(a1 * numbers::pi / 180);
@@ -533,7 +530,8 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
 //}
 //
 //pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>> solution_2(const bool& flag, map<pair<float, float>, pair<int, float>>& ef, vector<pair<House, int>>& houses) {
-//    map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
+// true - ratio_dis; false - dis   
+// map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
 //    //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
 //    map<pair<float, float>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
 //    int s = 0;
