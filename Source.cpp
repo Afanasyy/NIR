@@ -387,11 +387,11 @@ pair<bool, pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, 
 
 vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<vector<pair<int, int>>, int>>last_list, int last_ind, int lvl) {
     if (lower <= 0 && upper >= 0) {
-        last_list.back().second = 1;
+        last_list.back().second = -5;
         return last_list;
     }
     if (last_ind == -1) {
-        last_list.back().second = 0;
+        last_list.back().second = -4;
         return last_list;
     }
     int l = lower, u = upper;
@@ -401,35 +401,27 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
             l -= list[i].first;
             u -= list[i].first;
             auto y = smart_search(list, l, u, last_list, i - 1, lvl + 1);
-            if (y.back().second==1) {
-                auto t = y;
-                t.back().first.pop_back();
-                y.push_back(t.back());
-                auto z= smart_search(list, lower, upper, y, i - 1, lvl);      
-                if (z.back().second == 1) z.back().second = 2;
-                if (z.back().second == 0)
-                    z.pop_back();
-                return z;
-            }
-            if (y.empty())
-                return vector<pair<vector<pair<int, int>>, int>>();
-            if (!last_list.empty() && last_list.back().second==0 && y.back().first[0].first == -1) {
-                auto t = last_list;
-                t.back().first.pop_back();
-                auto z = smart_search(list, lower, upper, t, i - 1, lvl);
-            }
-            else if (!last_list.empty() && last_list.back().second==1 && y.back().first[0].first == -1) {
-                last_list.back().first.pop_back();
-                auto z = smart_search(list, lower, upper, last_list, i - 1, lvl);
-                if (z.back().first[0].first == -1) {
-                    last_list.pop_back();
-                    return last_list;
+            auto f = [&](auto& tmp, int&x, int&y)->auto {
+                auto t = tmp.back();
+                for (int j = t.first.size() - 1; j > lvl - 1; --j) {
+                    t.first.erase(t.first.begin() + j, t.first.end());
+                    t.second = -4;
+                    auto z = smart_search(list, x, y, { t }, i - 1, lvl);
+                    for (auto& it : z)
+                        if (it.second == -5) {
+                            it.second = 2;
+                            tmp.push_back(it);
+                        }
                 }
-                else return z;
-            }                
-            if (!y.back().first.empty() && y.back().first[0].first == -1 && y.back().second==0)
+                return tmp;
+            };
+            if (y.back().second == -5)
+                return f(y, l, u);
+            else if (y.back().second == -1 && !last_list.back().first.empty())
+                return f(last_list, l, u);
+            else if (!y.back().first.empty() && y.back().second == -1)
                 return smart_search(list, lower, upper, vector<pair<vector<pair<int, int>>, int>>(), last_ind - 1, lvl);
-            else if ((y.back().first.empty() && y.back().second==1) || (!y.back().first.empty() && y.back().first[0].first != -1 && (y.back().second==1|| y.back().second == 2))) {
+            else if ((y.back().first.empty() && y.back().second == -5) || (!y.back().first.empty() && (y.back().second == -5 || y.back().second == 2))) {
                 if (lvl == 1) {
                     y.push_back({});
                     auto x = smart_search(list, lower, upper, y, i - 1, lvl);
@@ -439,7 +431,7 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
                 return y;
             }
         }
-    return  { {{{-1,-1}},0} };
+    return  { {{{}},-1} };
 }
 
 bool getHs(map<pair<float, float>, int>& s_B, int& h_o, vector<int>& h_in, pair<float, float>& s_o, pair<float, float>& s_in, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& A, vector<pair<House, int>>& houses) {
