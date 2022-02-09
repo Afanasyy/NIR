@@ -406,7 +406,7 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
                 for (int j = t.first.size() - 1; j > lvl - 1; --j) {
                     t.first.erase(t.first.begin() + j, t.first.end());
                     t.second = -4;
-                    auto z = smart_search(list, x, y, { t }, i - 1, lvl);
+                    auto z = smart_search(list, x, y, { t }, i - 1, lvl + 1);
                     for (auto& it : z)
                         if (it.second == -5) {
                             it.second = 2;
@@ -416,9 +416,9 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
                 return tmp;
             };
             if (y.back().second == -5)
-                return f(y, l, u);
+                f(y, l, u);
             else if (y.back().second == -1 && !last_list.back().first.empty())
-                return f(last_list, l, u);
+                f(last_list, l, u);
             else if (!y.back().first.empty() && y.back().second == -1)
                 return smart_search(list, lower, upper, vector<pair<vector<pair<int, int>>, int>>(), last_ind - 1, lvl);
             else if ((y.back().first.empty() && y.back().second == -5) || (!y.back().first.empty() && (y.back().second == -5 || y.back().second == 2))) {
