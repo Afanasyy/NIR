@@ -13,7 +13,7 @@
 
 #define EARTH_RADIUS 6372795 
 #define COUNT_CHILDREN 4
-#define CONST_DIS 500
+#define CONST_DIS 0
 #define INPUT false  // true - ручной ввод; false - случайная генерация
 
 using namespace std;
@@ -139,7 +139,7 @@ int main() {
         for (const auto& it : sol_1.second.first) {
             for (const auto& it2 : it.second) {
                 if (it2.second == 588) {
-                    cout << it.first;
+                    cout << it.first << "\n";
                 }
             }
         }
@@ -153,7 +153,7 @@ int main() {
         for (const auto& it : sol_2.second.first) {
             for (const auto& it2 : it.second) {
                 if (it2.second == 588) {
-                    cout << it.first;
+                    cout << it.first << "\n";
                 }
             }
         }
@@ -477,6 +477,7 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>,
         B[h.second].erase(B[h.second].begin() + h.first);
         ++count_iteration;
     }
+    cout << "count_iteration = " << count_iteration << '\n';
     return { true, {B,s_B} };
 }
 
