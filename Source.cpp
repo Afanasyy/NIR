@@ -12,8 +12,8 @@
 #include "sqlite/sqlite3.h"
 
 #define EARTH_RADIUS 6372795 
-#define COUNT_CHILDREN 20
-#define CONST_DIS 300
+#define COUNT_CHILDREN 4
+#define CONST_DIS 500
 #define INPUT false  // true - ручной ввод; false - случайная генерация
 
 using namespace std;
@@ -118,11 +118,11 @@ int main() {
     setlocale(LC_NUMERIC, "C");
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    //srand(time(0));
+    srand(time(0));
 
-    //readFromDB();
+    readFromDB();
 
-    readFromTXT(); 
+    //readFromTXT(); 
 
     map<string, pair<vector<pair<string, pair<int, int>>>, int>> ans;
     if (solution_0(ans) > 1) {
@@ -183,7 +183,7 @@ int callback(void* data, int argc, char** argv, char** azColName) {
             if (INPUT)
                 children = atoi(argv[i]);
             else
-                children = rand() % COUNT_CHILDREN + 1;
+                children = rand() % COUNT_CHILDREN;
             if (id == 588) children = 1;
             sum_children += children;
         }
@@ -299,7 +299,7 @@ void readFromTXT() {
         if (INPUT)
             children = cord_house.second;
         else
-            children = rand() % COUNT_CHILDREN + 1;//случайная генерация кол-ва детей от 1 до 20
+            children = rand() % COUNT_CHILDREN;//случайная генерация кол-ва детей от 1 до 20
         sum_children += children;
         all_houses.push_back({ {cord_house.first},{children,id} });
         for (auto cord_school : cord_schools) {//расчет расстояния от дома до каждой школы
