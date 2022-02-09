@@ -105,7 +105,7 @@ auto getH(map<string, int>&, pair<int, string>&, string&, map<const string, vect
 auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, bool>>, int, int)->vector<pair<vector<pair<int, int>>, bool>>;
 auto solution_1(pair<int, float>&)->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
 auto getHs(map<string, int>&, int&, vector<int>& , string& , string& , map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&)->bool;
-auto solution_1()->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
+auto solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>&)->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
 auto calculateTheDistance(const float&, const float&, const float&, const float&)->float;
 auto readFromTXT()->void;
 auto readFromDB()->void;
@@ -125,7 +125,7 @@ int main() {
 
     map<string, pair<vector<pair<string, pair<int, int>>>, int>> ans;
     if (solution_0(ans) > 1) {
-        //auto sol_0 = solution_1(ans);
+        //auto sol_0 = solution_2(ans);
         //auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
 
         pair<int, float> x_ef1_first, x_ef2_first, ef_1, ef_2;
@@ -558,7 +558,7 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
     return true;
 }
 
-pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> solution_1(map<string, pair<vector<pair<string, pair<int, int>>>, int>>& ans) {
+pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>& ans) {
     map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>> A, B;
     map<string, int> s_A, s_B;//сумма детей в каждой школе
     for (const auto& it : ans) {
