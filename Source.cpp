@@ -103,7 +103,7 @@ auto calcCountClasses(const int&)->int;
 auto setClasses(const int&, map<string, int>)->void;
 auto foo(vector<string>&, const string&)->bool;
 auto getH(map<string, int>&, pair<int, string>&, string&, map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&)->bool;
-auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, int>>, int, int)->vector<pair<vector<pair<int, int>>, int>>;
+auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, int>>, int, int, int&)->vector<pair<vector<pair<int, int>>, int>>;
 auto solution_1()->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
 auto getHs(map<string, int>&, int&, vector<int>& , string& , string& , map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&)->bool;
 auto solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>&)->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
@@ -122,44 +122,44 @@ int main() {
 
     //readFromDB();
 
-    readFromTXT(); 
+    readFromTXT();
 
     map<string, pair<vector<pair<string, pair<int, int>>>, int>> ans;
-    if (solution_0(ans) > 1) {
+    int t = solution_0(ans);
+    if (t > 1) {
         auto sol_0 = solution_2(ans);
         auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
 
+        auto f = [](auto sol, int id)->string {
+            for (const auto& it : sol.second.first)
+                for (const auto& it2 : it.second)
+                    if (it2.second == id) return it.first;
+        };
+
         pair<int, float> ef_1, ef_2;
 
+        cout << "\n###################\n\n";
+
         fl = true;//без учета детей
-        auto sol_1 = solution_1();
+        pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> sol_1 = solution_1();
         if (sol_1.first)
             ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
         else cout << "Эффективное решение №1 не найдено\n";
-        /*for (const auto& it : sol_1.second.first) {
-            for (const auto& it2 : it.second) {
-                if (it2.second == 588) {
-                    cout << it.first << "\n";
-                }
-            }
-        }*/
 
+        cout << "\n###################\n\n";
 
         fl = false;//с учетом детей
         auto sol_2 = solution_1();
         if (sol_2.first)
             ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
         else cout << "Эффективное решение №2 не найдено\n";
-        /*for (const auto& it : sol_2.second.first) {
-            for (const auto& it2 : it.second) {
-                if (it2.second == 588) {
-                    cout << it.first << "\n";
-                }
-            }
-        }*/
+
         cout << "yes";
     }
-    
+    else if (t == 1)
+        cout << "Нулевой алгоритм не нашел решение\n";
+    else if (t == 0)
+        cout << "Невозможно распределить при таком кол-ве детей\n";
     return 0;
 }
 
@@ -167,7 +167,7 @@ int callback(void* data, int argc, char** argv, char** azColName) {
     int id;
     map<string, int>dis;
     map<string, float>ratio_dis;
-    int children;    
+    int children;
     string cord;
     for (int i = 0; i < argc; i++) {
         cout << azColName[i] << '\n';
@@ -200,7 +200,7 @@ int callback(void* data, int argc, char** argv, char** azColName) {
         //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
     }
     all_houses.push_back({ cord,{children,id} });
-    data_data[id]={children,dis,cord,ratio_dis,id };
+    data_data[id] = { children,dis,cord,ratio_dis,id };
     set_cl = true;
     //printf("\n");
     return 0;
@@ -209,10 +209,9 @@ int callback(void* data, int argc, char** argv, char** azColName) {
 int solution_0(map<string, pair<vector<pair<string, pair<int, int>>>, int>>& ans) {
     for (const auto& it : templ_classes) ans[it.first];
     auto count = calcCountClasses(sum_children);
-    if (count == -1) {
-        cout << "Невозможно распределить при таком кол-ве детей\n";
+    if (count == -1)
         return 0;
-    }
+
     setClasses(count, templ_classes);
 
     sort(all_houses.begin(), all_houses.end(), [](auto& l, auto& r)->bool {return l.second.first < r.second.first; });
@@ -291,7 +290,7 @@ void readFromTXT() {
             cord_houses.push_back({ tmp1, tmp2 });
         }
     }
-        
+
     int id = 0;
     for (auto cord_house : cord_houses) {
         map<string, float> ratio_dis;//массивы расстояний и коэф расстояний
@@ -352,8 +351,8 @@ int calcCountClasses(const int& s) {
         if (mmin.second < m)
             mmin = { i,m };
     }
-    if (ans.empty())         
-        return -1;    
+    if (ans.empty())
+        return -1;
     return ans[mmin.first];
 }
 
@@ -438,7 +437,7 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
             return false;
         }
     }
-    if (c == const_count.size()) return true;    
+    if (c == const_count.size()) return true;
 }
 
 pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> solution_1() {
@@ -467,8 +466,8 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>,
     pair<int, string>h;
     string sch;
     while (!getH(s_B, h, sch, B)) {//поиск дома для перекидывания
-        if (h.first == -1) 
-            return { false, {B,s_B} };        
+        if (h.first == -1)
+            return { false, {B,s_B} };
         int* ptr = &(B[h.second][h.first].first.first.second.second);
         s_B[h.second] -= *ptr;
         s_B[sch] += *ptr;
@@ -482,7 +481,8 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>,
     return { true, {B,s_B} };
 }
 
-vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<vector<pair<int, int>>, int>>last_list, int last_ind, int lvl) {
+vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<vector<pair<int, int>>, int>>last_list, int last_ind, int lvl, int& count_iteration) {
+    ++count_iteration;
     if (lower <= 0 && upper >= 0) {
         last_list.back().second = -5;
         return last_list;
@@ -497,14 +497,14 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
             !last_list.empty() ? last_list.back().first.push_back(list[i]) : last_list.push_back({ { list[i] },false });
             l -= list[i].first;
             u -= list[i].first;
-            auto y = smart_search(list, l, u, last_list, i - 1, lvl + 1);
+            auto y = smart_search(list, l, u, last_list, i - 1, lvl + 1, count_iteration);
             switch (y.back().second)
             {
             case -5: {
                 auto t = y.back();
                 t.first.erase(t.first.begin() + (lvl - 1), t.first.end());
                 t.second = -3;
-                auto z = smart_search(list, lower, upper, { t }, i - 1, lvl);
+                auto z = smart_search(list, lower, upper, { t }, i - 1, lvl, count_iteration);
                 for (auto& it : z)
                     if (it.second == -5 || it.second == 2) {
                         it.second = 2;
@@ -520,12 +520,12 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
                 last_list.pop_back();
                 t.first.erase(t.first.begin() + (lvl - 1), t.first.end());
                 t.second = -3;
-                auto z = smart_search(list, lower, upper, { t }, i - 1, lvl);
+                auto z = smart_search(list, lower, upper, { t }, i - 1, lvl, count_iteration);
                 for (auto& it : z)
                     if (it.second == -5 || it.second == 2) {
                         it.second == 2;
                         last_list.push_back(it);
-                    }                
+                    }
                 return last_list.empty() ? z : last_list;
             }
             default:
@@ -534,7 +534,7 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
             if (!y.back().first.empty() && (y.back().second == -5 || y.back().second == 2)) {
                 if (lvl == 1) {
                     y.push_back({ {},-4 });
-                    auto x = smart_search(list, lower, upper, y, i - 1, lvl);
+                    auto x = smart_search(list, lower, upper, y, i - 1, lvl, count_iteration);
                     return x;
                 }
                 return y;
@@ -544,6 +544,7 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
 }
 
 bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, string& s_in, map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>& A) {
+    int count_iteration = 0;
     for (const auto& it : A)
         for (const auto& it2 : it.second) {
             h_in = vector<int>();
@@ -562,7 +563,7 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
                 vector<int>tmp2;
                 if (list.empty()) continue;
                 sort(list.begin(), list.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
-                auto ans = smart_search(list, lower, upper, { {{},-4} }, list.size() - 1, 1);
+                auto ans = smart_search(list, lower, upper, { {{},-4} }, list.size() - 1, 1, count_iteration);
                 pair<int, int>best_2 = { 0,-1 };
                 int c = 0;
                 for (const auto& it5 : ans) {
@@ -580,9 +581,11 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
                 for (const auto& it : best.second) h_in.push_back(it.second);
                 s_o = it.first;
                 s_in = best.first.second;
+                cout << "count_iteration in rec = " << count_iteration << '\n';
                 return false;
             }
         }
+    cout << "count_iteration in rec = " << count_iteration << '\n';
     return true;
 }
 
@@ -623,6 +626,7 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>,
         }
         ++count_iteration;
     }
+    cout << "count_iteration = " << count_iteration << '\n';
     return{ true,{B,s_B} };
 }
 
