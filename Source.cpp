@@ -102,7 +102,7 @@ int main() {
     vector<pair<int, int>>a = { {4, 7},{7, 14},{8, 6},{8, 3},{9, 11},{9, 8},{11, 4} };
     //for (int i = 0; i < 10; ++i) a.push_back({ rand() % COUNT_CHILDREN + 1,rand() });
     sort(a.begin(), a.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
-    auto y = smart_search(a, 20, 21, vector<pair<vector<pair<int, int>>,int>>(), a.size() - 1, 1);
+    auto y = smart_search(a, 10, 25, vector<pair<vector<pair<int, int>>,int>>(), a.size() - 1, 1);
 
 
     bool flag = false; // true - ручной ввод; false - случайная генерация
@@ -401,32 +401,44 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
             l -= list[i].first;
             u -= list[i].first;
             auto y = smart_search(list, l, u, last_list, i - 1, lvl + 1);
-            auto f = [&](auto& tmp, int&x, int&y)->auto {
-                auto t = tmp.back();
-                for (int j = t.first.size() - 1; j > lvl - 1; --j) {
-                    t.first.erase(t.first.begin() + j, t.first.end());
-                    t.second = -4;
-                    auto z = smart_search(list, x, y, { t }, i - 1, lvl);
-                    for (auto& it : z)
-                        if (it.second == -5) {
-                            it.second = 2;
-                            tmp.push_back(it);
-                        }                    
-                }
-                return tmp;
-            };
-            if (y.back().second == -5)
-               f(y, l, u);
-            else if (y.back().second == -1 && !last_list.back().first.empty())
-                y = f(last_list, l, u);
-            if (!y.back().first.empty() && y.back().second == -1)
-                return smart_search(list, lower, upper, vector<pair<vector<pair<int, int>>, int>>(), last_ind - 1, lvl);
-            else if ((y.back().first.empty() && y.back().second == -5) || (!y.back().first.empty() && (y.back().second == -5 || y.back().second == 2))) {
+            switch (y.back().second)
+            {
+            case -5: {
+                auto t = y.back();
+                t.first.erase(t.first.begin() + (lvl - 1), t.first.end());
+                t.second = -3;
+                auto z = smart_search(list, lower, upper, { t }, i - 1, lvl);
+                for (auto& it : z)
+                    if (it.second == -5 || it.second == 2) {
+                        it.second = 2;
+                        y.push_back(it);
+                    }
+                return y;
+            }
+            case -4: {
+                return y;
+            }
+            case -1: {
+                auto t = last_list.back();
+                last_list.pop_back();
+                t.first.erase(t.first.begin() + (lvl - 1), t.first.end());
+                t.second = -3;
+                auto z = smart_search(list, lower, upper, { t }, i - 1, lvl);
+                for (auto& it : z)
+                    if (it.second == -5 || it.second == 2) {
+                        it.second == 2;
+                        last_list.push_back(it);
+                    }
+                return last_list;
+            }
+            default:
+                break;
+            }
+            if (!y.back().first.empty() && (y.back().second == -5 || y.back().second == 2)) {
                 if (lvl == 1) {
-                    y.push_back({});
+                    y.push_back({ {},-4 });
                     auto x = smart_search(list, lower, upper, y, i - 1, lvl);
-                    if (x.back().first.empty())
-                        return x;
+                    return x;
                 }
                 return y;
             }
