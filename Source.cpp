@@ -12,7 +12,7 @@
 #include "sqlite/sqlite3.h"
 
 #define EARTH_RADIUS 6372795 
-#define COUNT_CHILDREN 4
+#define COUNT_CHILDREN 20 + 1
 #define CONST_DIS 0
 #define INPUT false  // true - ручной ввод; false - случайна€ генераци€
 
@@ -103,7 +103,7 @@ auto calcCountClasses(const int&)->int;
 auto setClasses(const int&, map<string, int>)->void;
 auto foo(vector<string>&, const string&)->bool;
 auto getH(map<string, int>&, pair<int, string>&, string&, map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&)->bool;
-auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, bool>>, int, int)->vector<pair<vector<pair<int, int>>, bool>>;
+auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, int>>, int, int)->vector<pair<vector<pair<int, int>>, int>>;
 auto solution_1()->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
 auto getHs(map<string, int>&, int&, vector<int>& , string& , string& , map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&)->bool;
 auto solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>&)->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
@@ -118,16 +118,16 @@ int main() {
     setlocale(LC_NUMERIC, "C");
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    srand(time(0));
+    //srand(time(0));
 
-    readFromDB();
+    //readFromDB();
 
-    //readFromTXT(); 
+    readFromTXT(); 
 
     map<string, pair<vector<pair<string, pair<int, int>>>, int>> ans;
     if (solution_0(ans) > 1) {
-        //auto sol_0 = solution_2(ans);
-        //auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
+        auto sol_0 = solution_2(ans);
+        auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
 
         pair<int, float> ef_1, ef_2;
 
@@ -136,13 +136,13 @@ int main() {
         if (sol_1.first)
             ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
         else cout << "Ёффективное решение є1 не найдено\n";
-        for (const auto& it : sol_1.second.first) {
+        /*for (const auto& it : sol_1.second.first) {
             for (const auto& it2 : it.second) {
                 if (it2.second == 588) {
                     cout << it.first << "\n";
                 }
             }
-        }
+        }*/
 
 
         fl = false;//с учетом детей
@@ -150,13 +150,14 @@ int main() {
         if (sol_2.first)
             ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
         else cout << "Ёффективное решение є2 не найдено\n";
-        for (const auto& it : sol_2.second.first) {
+        /*for (const auto& it : sol_2.second.first) {
             for (const auto& it2 : it.second) {
                 if (it2.second == 588) {
                     cout << it.first << "\n";
                 }
             }
-        }
+        }*/
+        cout << "yes";
     }
     
     return 0;
@@ -481,13 +482,13 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>,
     return { true, {B,s_B} };
 }
 
-vector<pair<vector<pair<int, int>>, bool>> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<vector<pair<int, int>>, bool>>last_list, int last_ind, int lvl) {
+vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, int>>& list, int lower, int upper, vector<pair<vector<pair<int, int>>, int>>last_list, int last_ind, int lvl) {
     if (lower <= 0 && upper >= 0) {
-        last_list.back().second = true;
+        last_list.back().second = -5;
         return last_list;
     }
     if (last_ind == -1) {
-        last_list.back().second = false;
+        last_list.back().second = -4;
         return last_list;
     }
     int l = lower, u = upper;
@@ -497,21 +498,49 @@ vector<pair<vector<pair<int, int>>, bool>> smart_search(const vector<pair<int, i
             l -= list[i].first;
             u -= list[i].first;
             auto y = smart_search(list, l, u, last_list, i - 1, lvl + 1);
-            if (y.empty())
-                return vector<pair<vector<pair<int, int>>, bool>>();
-            if (!y.back().first.empty() && y.back().first[0].first == -1 && !y.back().second)
-                return smart_search(list, lower, upper, vector<pair<vector<pair<int, int>>, bool>>(), last_ind - 1, lvl + 1);
-            else if ((y.back().first.empty() && y.back().second) || (!y.back().first.empty() && y.back().first[0].first != -1 && y.back().second)) {
+            switch (y.back().second)
+            {
+            case -5: {
+                auto t = y.back();
+                t.first.erase(t.first.begin() + (lvl - 1), t.first.end());
+                t.second = -3;
+                auto z = smart_search(list, lower, upper, { t }, i - 1, lvl);
+                for (auto& it : z)
+                    if (it.second == -5 || it.second == 2) {
+                        it.second = 2;
+                        y.push_back(it);
+                    }
+                return y;
+            }
+            case -4: {
+                return y;
+            }
+            case -1: {
+                auto t = last_list.back();
+                last_list.pop_back();
+                t.first.erase(t.first.begin() + (lvl - 1), t.first.end());
+                t.second = -3;
+                auto z = smart_search(list, lower, upper, { t }, i - 1, lvl);
+                for (auto& it : z)
+                    if (it.second == -5 || it.second == 2) {
+                        it.second == 2;
+                        last_list.push_back(it);
+                    }                
+                return last_list.empty() ? z : last_list;
+            }
+            default:
+                break;
+            }
+            if (!y.back().first.empty() && (y.back().second == -5 || y.back().second == 2)) {
                 if (lvl == 1) {
-                    y.push_back({});
+                    y.push_back({ {},-4 });
                     auto x = smart_search(list, lower, upper, y, i - 1, lvl);
-                    if (x.back().first.empty())
-                        return x;
+                    return x;
                 }
                 return y;
             }
         }
-    return  { {{{-1,-1}},false} };
+    return  { {{{}},-1} };
 }
 
 bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, string& s_in, map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>& A) {
@@ -519,33 +548,40 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
         for (const auto& it2 : it.second) {
             h_in = vector<int>();
             int children = it2.first.first.second.second;
+            int cur = it2.first.first.second.first;
             auto dis = data_data[it2.second].getNearDis(it2.first.first.second.first);
             if (dis.empty()) continue;
-            int best = 0;
+            pair<pair<int, string>, vector<pair<int, int>>>best = { {0,""},{} };
             for (const auto& it4 : dis) {
+                int new_dis = data_data[it2.second].getDisToSch(it4);
                 vector<pair<int, int>>list;
                 for (const auto& it3 : A[it4])
-                    if (data_data[it3.second].getDisToSch(it.first) < it3.first.first.second.first)
-                        list.push_back({ it3.first.first.second.second,it3.second });
+                    list.push_back({ it3.first.first.second.second,it3.second });
                 int lower = s_B[it4] - (28 * const_count[it4]) + children;
                 int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
                 vector<int>tmp2;
                 if (list.empty()) continue;
                 sort(list.begin(), list.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
-                auto ans = smart_search(list, lower, upper, vector<pair<vector<pair<int, int>>, bool>>(), list.size() - 1, 1);
-                /*if (ans.) {
-                    int newb = abs(data_data[it2.second].getDisToSch(it4) - it2.first.first.second.first) * children;
-                    for (const auto& it5 : ans.first) newb += (abs(data_data[it5.second].getDisToSch(it4) - data_data[it5.second].getDisToSch(it.first)) * data_data[it5.second].getChildren());
-                    if (newb > best) {
-                        for (auto it : ans.first) tmp2.push_back(it.second);
-                        h_o = it2.second;
-                        h_in = tmp2;
-                        s_o = it.first;
-                        s_in = it4;
-                    }
-                }*/
+                auto ans = smart_search(list, lower, upper, { {{},-4} }, list.size() - 1, 1);
+                pair<int, int>best_2 = { 0,-1 };
+                int c = 0;
+                for (const auto& it5 : ans) {
+                    if (it5.second != -5 && it5.second != 2) continue;
+                    int tmp = 0;
+                    for (const auto& it6 : it5.first)
+                        tmp += (data_data[it6.second].getDisToSch(it4) - data_data[it6.second].getDisToSch(it.first)) * data_data[it6.second].getChildren();
+                    if ((cur - new_dis) * children + tmp > best_2.first) best_2 = { (cur - new_dis) * children + tmp ,c };
+                    ++c;
+                }
+                if (best_2.first > best.first.first) best = { {best_2.first,it4},ans[best_2.second].first };
             }
-            if (!h_in.empty()) return false;
+            if (best.first.first != 0) {
+                h_o = it2.second;
+                for (const auto& it : best.second) h_in.push_back(it.second);
+                s_o = it.first;
+                s_in = best.first.second;
+                return false;
+            }
         }
     return true;
 }
