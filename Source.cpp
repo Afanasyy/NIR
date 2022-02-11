@@ -20,48 +20,31 @@ using namespace std;
 
 class House {
 public:
-    House(const int& children, const map<string, int>& dis, const string& cord, const map<string, float>& ratio_dis, const int& id) {
+    House(const int& children, const map<string, int>& dis, const string& cord, const int& id) {
         this->children = children;
         this->dis = dis;
         this->cord = cord;
-        this->ratio_dis = ratio_dis;
         this->id = id;
     }
-    void operator = (const House&other) {
+    void operator = (const House& other) {
         this->children = other.children;
         this->dis = other.dis;
         this->cord = other.cord;
-        this->ratio_dis = other.ratio_dis;
         this->id = other.id;
     }
-    House(){}
-    string getCord() {
-        return cord;
-    }
+    House() {}
     int getChildren() {
         return children;
     }
     map<string, int> getDis() {
         return dis;
     }
-    map<string, float> getRatio_Dis() {
-        return ratio_dis;
-    }
-    pair<string, float> getMin_dis() {
-        pair<string, float> m;
+    pair<string, double> getMin_dis() {
+        pair<string, double> m;
         m.second = INT_MAX;
         for (auto i : dis)
             if (i.second < m.second) m = i;
         return m;
-    }
-    float getDifference(const string& school_m, const string& school_M) {
-        return abs(dis[school_m] - dis[school_M]);
-    }
-    float getDifference_r(const string& school_m, const string& school_M) {
-        return abs(ratio_dis[school_m] - ratio_dis[school_M]);
-    }
-    int getID() {
-        return id;
     }
     int getDisToSch(const string& sch) {
         for (auto it : dis) {
@@ -76,16 +59,10 @@ public:
         for (const auto& it : tmp) if (it.second < cur) ans.push_back(it.first);
         return ans;
     }
-    float getRatioDisToSch(const string& sch) {
-        for (auto it : ratio_dis) {
-            if (it.first == sch) return it.second;
-        }
-    }
 private:
     map<string, int>dis;
     int children;
     string cord;
-    map<string, float>ratio_dis;
     int id;
 };
 
@@ -98,16 +75,16 @@ vector<pair<string, pair<int, int>>>all_houses;
 map<string, int>templ_classes;
 
 auto solution_0(map<string, pair<vector<pair<string, pair<int, int>>>, int>>&)->int;
-auto calcEf(const map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&, const map<string, int>&) ->pair<int, float>;
+auto calcEf(const map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&, const map<string, int>&) ->pair<int, double>;
 auto calcCountClasses(const int&)->int;
 auto setClasses(const int&, map<string, int>)->void;
 auto foo(vector<string>&, const string&)->bool;
 auto getH(map<string, int>&, pair<int, string>&, string&, map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&)->bool;
 auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, int>>, int, int, int&)->vector<pair<vector<pair<int, int>>, int>>;
-auto solution_1()->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
+auto solution_1()->pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>>;
 auto getHs(map<string, int>&, int&, vector<int>& , string& , string& , map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&)->bool;
-auto solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>&)->pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>>;
-auto calculateTheDistance(const float&, const float&, const float&, const float&)->float;
+auto solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>&)->pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>>;
+auto calculateTheDistance(const double&, const double&, const double&, const double&)->double;
 auto readFromTXT()->void;
 auto readFromDB()->void;
 auto UTF8to1251(string const&)->string;
@@ -128,16 +105,16 @@ int main() {
     int t = solution_0(ans);
     switch (t) {
     case 2: {
-        auto sol_0 = solution_2(ans);
-        auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
-
-        auto f = [](auto sol, int id)->string {
+        auto f = [](const auto& sol, const int& id)->string {
             for (const auto& it : sol.second.first)
                 for (const auto& it2 : it.second)
                     if (it2.second == id) return it.first;
         };
 
-        pair<int, float> ef_1, ef_2;
+        auto sol_0 = solution_2(ans);
+        auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
+
+        pair<int, double> ef_1, ef_2;
 
         cout << "\n###################\n\n";
 
@@ -154,8 +131,6 @@ int main() {
         if (sol_2.first)
             ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
         else cout << "Эффективное решение №2 не найдено\n";
-
-        cout << "yes";
         break;
     }
     case 1: {
@@ -167,14 +142,12 @@ int main() {
         break;
     }
     }
-
     return 0;
 }
 
 int callback(void* data, int argc, char** argv, char** azColName) {
     int id;
     map<string, int>dis;
-    map<string, float>ratio_dis;
     int children;
     string cord;
     for (int i = 0; i < argc; i++) {
@@ -193,7 +166,6 @@ int callback(void* data, int argc, char** argv, char** azColName) {
                 children = atoi(argv[i]);
             else
                 children = rand() % COUNT_CHILDREN;
-            if (id == 588) children = 1;
             sum_children += children;
         }
         else if (tmp != "addr") {
@@ -201,16 +173,13 @@ int callback(void* data, int argc, char** argv, char** azColName) {
             int t = atoi(argv[i]);
             if (t == 0) ++t;
             dis[tmp] = t;
-            ratio_dis[tmp] = float(children) / t;
         }
         else if (tmp == "addr")
             addr[id] = (UTF8to1251(argv[i]));
-        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
     }
     all_houses.push_back({ cord,{children,id} });
-    data_data[id] = { children,dis,cord,ratio_dis,id };
+    data_data[id] = { children,dis,cord,id };
     set_cl = true;
-    //printf("\n");
     return 0;
 }
 
@@ -276,7 +245,6 @@ void readFromDB() {
     else
         cout << "Operation done successfully\n";
     sqlite3_close(db);
-
 }
 
 void readFromTXT() {
@@ -301,7 +269,6 @@ void readFromTXT() {
 
     int id = 0;
     for (auto cord_house : cord_houses) {
-        map<string, float> ratio_dis;//массивы расстояний и коэф расстояний
         map<string, int> dis;
         int children;
         if (INPUT)
@@ -314,41 +281,37 @@ void readFromTXT() {
             int t = cord_house.first.find(',');
             auto tmp1 = stod(cord_house.first.substr(0, t)), tmp2 = stod(cord_house.first.substr(t + 2)), tmp3 = stod(cord_school.substr(0, t)), tmp4 = stod(cord_school.substr(t + 2));
             dis[cord_school] = calculateTheDistance(tmp1, tmp2, tmp3, tmp4);
-            ratio_dis[cord_school] = float(children) / dis[cord_school];//расчет коэф расстояния от дома до каждой школы
         }
-        data_data[id] = { children,dis,cord_house.first,ratio_dis,id }; //создание объекта одного 
+        data_data[id] = { children,dis,cord_house.first,id }; //создание объекта одного 
         ++id;
     }
 }
 
-float calculateTheDistance(const float& a1, const float& b1, const float& a2, const float& b2) {
-    float cl1 = cos(a1 * numbers::pi / 180);
-    float cl2 = cos(a2 * numbers::pi / 180);
-    float sl1 = sin(a1 * numbers::pi / 180);
-    float sl2 = sin(a2 * numbers::pi / 180);
-    float cdelta = cos(b2 * numbers::pi / 180 - b1 * numbers::pi / 180);
-    float sdelta = sin(b2 * numbers::pi / 180 - b1 * numbers::pi / 180);
-    float y = sqrt(pow(cl2 * sdelta, 2) + pow(cl1 * sl2 - sl1 * cl2 * cdelta, 2));
-    float x = sl1 * sl2 + cl1 * cl2 * cdelta;
+double calculateTheDistance(const double& a1, const double& b1, const double& a2, const double& b2) {
+    double cl1 = cos(a1 * numbers::pi / 180);
+    double cl2 = cos(a2 * numbers::pi / 180);
+    double sl1 = sin(a1 * numbers::pi / 180);
+    double sl2 = sin(a2 * numbers::pi / 180);
+    double cdelta = cos(b2 * numbers::pi / 180 - b1 * numbers::pi / 180);
+    double sdelta = sin(b2 * numbers::pi / 180 - b1 * numbers::pi / 180);
+    double y = sqrt(pow(cl2 * sdelta, 2) + pow(cl1 * sl2 - sl1 * cl2 * cdelta, 2));
+    double x = sl1 * sl2 + cl1 * cl2 * cdelta;
     return atan2(y, x) * EARTH_RADIUS;
 }
 
-pair<int, float> calcEf(const map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>& B, const map<string, int>& s_B) {
-    pair<int, float>ef;
+pair<int, double> calcEf(const map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>& B, const map<string, int>& s_B) {
+    pair<int, double>ef;
     for (auto it : B) {
         for (auto it2 : it.second) {
-            ef.first += it2.first.first.second.first * it2.first.first.second.second;
-            ef.second += float(it2.first.first.second.second) / it2.first.first.second.first;
-            if (ef.second == INFINITY) {
-                cout << "STOP\n";
-            }
+            ef.first += it2.first.first.first * it2.first.first.second;
+            ef.second += double(it2.first.first.second) / it2.first.first.first;            
         }
     }
     return ef;
 }
 
 int calcCountClasses(const int& s) {
-    float upper = s / 25.0, lower = s / 28.0;
+    double upper = s / 25.0, lower = s / 28.0;
     vector<int>ans;
     for (int i = ceil(lower); i <= floor(upper); ++i)
         ans.push_back(i);
@@ -365,7 +328,7 @@ int calcCountClasses(const int& s) {
 }
 
 void setClasses(const int& count_classes, map<string, int>templ_class) {
-    int min_c = floor(float(count_classes) / templ_class.size());
+    int min_c = floor(double(count_classes) / templ_class.size());
     int remains = count_classes - min_c * templ_class.size();//остаток
     for (auto& it : templ_class) it.second += min_c;
     while (remains != 0) {
@@ -386,7 +349,7 @@ bool foo(vector<string>& v, const string& t) {
     return true;
 }
 
-bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>& A) {
+bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>& A) {
     int c = 0;
     bool flag2 = false;
     for (auto it : s_B) {
@@ -397,12 +360,12 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
             int count = 0;
             for (auto it2 : A[it.first]) {
                 pair<string, int>m = { {0,0},INT_MAX };
-                int current = it2.first.first.second.first;
+                int current = it2.first.first.first;
                 int children;
                 if (fl)
                     children = 1;
                 else
-                    children = it2.first.first.second.second;
+                    children = it2.first.first.second;
                 auto dis = data_data[it2.second].getDis();
                 for (auto it3 : dis)
                     if (m.second > abs((current - it3.second) * children) && current != it3.second && foo(it2.first.second, it3.first))
@@ -425,14 +388,14 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
                     pair<int, int>m = { 0,INT_MAX };
                     int count = 0;
                     for (auto it3 : it2.second) {
-                        int current = it3.first.first.second.first;
+                        int current = it3.first.first.first;
                         int children;
                         if (fl)
                             children = 1;
                         else
-                            children = it3.first.first.second.second;
+                            children = it3.first.first.second;
                         int new_dis = data_data[it3.second].getDisToSch(it.first);
-                        if (m.second > abs((current - new_dis) * children) && current != new_dis && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second.second > 25 * const_count[it2.first]))
+                        if (m.second > abs((current - new_dis) * children) && current != new_dis && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second > 25 * const_count[it2.first]))
                             m = { count,abs((current - new_dis) * children) }, flag2 = true;
                         ++count;
                     }
@@ -448,18 +411,18 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
     if (c == const_count.size()) return true;
 }
 
-pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> solution_1() {
-    map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>> A, B, const_hs;
+pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>> solution_1() {
+    map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>> A, B, const_hs;
     //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
     map<string, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
     int s = 0;
     for (auto house : data_data) {
-        pair<string, float> tmp = house.second.getMin_dis();//минимальное расстояние
+        pair<string, double> tmp = house.second.getMin_dis();//минимальное расстояние
         auto t = vector<string>(0);
         if (tmp.second <= CONST_DIS)
-            const_hs[tmp.first].push_back({ {{ house.second.getCord(),{tmp.second,house.second.getChildren()} },t}, house.second.getID() });
+            const_hs[tmp.first].push_back({{ { tmp.second, house.second.getChildren() },t}, house.first });
         else
-            A[tmp.first].push_back({ {{ house.second.getCord(),{tmp.second,house.second.getChildren()} },t}, house.second.getID() });
+            A[tmp.first].push_back({ {{tmp.second,house.second.getChildren() },t}, house.first });
         //распределение домов к школе с максимальным коэф
         s_A[tmp.first] += house.second.getChildren();//подсчет суммы детей в школе
         count_class[tmp.first] = 0;
@@ -476,10 +439,10 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>,
     while (!getH(s_B, h, sch, B)) {//поиск дома для перекидывания
         if (h.first == -1)
             return { false, {B,s_B} };
-        int* ptr = &(B[h.second][h.first].first.first.second.second);
+        int* ptr = &(B[h.second][h.first].first.first.second);
         s_B[h.second] -= *ptr;
         s_B[sch] += *ptr;
-        B[h.second][h.first].first.first.second.first = data_data[B[h.second][h.first].second].getDisToSch(sch);
+        B[h.second][h.first].first.first.first = data_data[B[h.second][h.first].second].getDisToSch(sch);
         B[h.second][h.first].first.second.push_back(h.second);
         B[sch].push_back(B[h.second][h.first]);
         B[h.second].erase(B[h.second].begin() + h.first);
@@ -551,21 +514,21 @@ vector<pair<vector<pair<int, int>>, int>> smart_search(const vector<pair<int, in
     return  { {{{}},-1} };
 }
 
-bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, string& s_in, map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>& A) {
+bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, string& s_in, map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>& A) {
     int count_iteration = 0;
     for (const auto& it : A)
         for (const auto& it2 : it.second) {
             h_in = vector<int>();
-            int children = it2.first.first.second.second;
-            int cur = it2.first.first.second.first;
-            auto dis = data_data[it2.second].getNearDis(it2.first.first.second.first);
+            int children = it2.first.first.second;
+            int cur = it2.first.first.first;
+            auto dis = data_data[it2.second].getNearDis(it2.first.first.first);
             if (dis.empty()) continue;
             pair<pair<int, string>, vector<pair<int, int>>>best = { {0,""},{} };
             for (const auto& it4 : dis) {
                 int new_dis = data_data[it2.second].getDisToSch(it4);
                 vector<pair<int, int>>list;
                 for (const auto& it3 : A[it4])
-                    list.push_back({ it3.first.first.second.second,it3.second });
+                    list.push_back({ it3.first.first.second,it3.second });
                 int lower = s_B[it4] - (28 * const_count[it4]) + children;
                 int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
                 vector<int>tmp2;
@@ -597,13 +560,13 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
     return true;
 }
 
-pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>& ans) {
-    map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>> A, B;
+pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>> solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>& ans) {
+    map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>> A, B;
     map<string, int> s_A, s_B;//сумма детей в каждой школе
     for (const auto& it : ans) {
         s_A[it.first] = it.second.second;
         for (const auto& it2 : it.second.first)
-            A[it.first].push_back({ {{{it2.first},{data_data[it2.second.second].getDisToSch(it.first),it2.second.first}},vector<string>(0)},it2.second.second });
+            A[it.first].push_back({ {{data_data[it2.second.second].getDisToSch(it.first),it2.second.first},vector<string>(0)},it2.second.second });
     }
 
     auto t = calcEf(A, s_A);
@@ -617,18 +580,18 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>,
     while (!getHs(s_B, h_o, h_in, s_o, s_in, B)) {
         int tmp;
         for (int i = 0; i < B[s_o].size(); ++i) if (B[s_o][i].second == h_o) { tmp = i; break; }
-        int* ptr = &(B[s_o][tmp].first.first.second.second);
+        int* ptr = &(B[s_o][tmp].first.first.second);
         s_B[s_o] -= *ptr;
         s_B[s_in] += *ptr;
-        B[s_o][tmp].first.first.second.first = data_data[B[s_o][tmp].second].getDisToSch(s_in);
+        B[s_o][tmp].first.first.first = data_data[B[s_o][tmp].second].getDisToSch(s_in);
         B[s_in].push_back(B[s_o][tmp]);
         B[s_o].erase(B[s_o].begin() + tmp);
         for (const auto& it : h_in) {
             for (int i = 0; i < B[s_in].size(); ++i) if (B[s_in][i].second == it) { tmp = i; break; }
-            int* ptr = &(B[s_in][tmp].first.first.second.second);
+            int* ptr = &(B[s_in][tmp].first.first.second);
             s_B[s_in] -= *ptr;
             s_B[s_o] += *ptr;
-            B[s_in][tmp].first.first.second.first = data_data[B[s_in][tmp].second].getDisToSch(s_o);
+            B[s_in][tmp].first.first.first = data_data[B[s_in][tmp].second].getDisToSch(s_o);
             B[s_o].push_back(B[s_in][tmp]);
             B[s_in].erase(B[s_in].begin() + tmp);
         }
@@ -659,88 +622,3 @@ string UTF8to1251(string const& utf8) {
     }
     return s1251;
 }
-
-//void sorting(const bool& flag, const pair<float, float>& school_m, const pair<float, float>& school_M, map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>& map, vector<pair<House, int>>& houses) {
-//    sort(map[school_M].begin(), map[school_M].end(),
-//        [&school_M, &school_m, &houses, &flag]
-//    (pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>& l, pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>& r)->bool
-//        {
-//            int id_1 = l.second, id_2 = r.second;
-//            float dif_1 = 0, dif_2 = 0;
-//            if (flag)
-//                dif_1 = houses[id_1].first.getDifference_r(school_m, school_M), dif_2 = houses[id_2].first.getDifference_r(school_m, school_M);
-//            else
-//                dif_1 = houses[id_1].first.getDifference(school_m, school_M), dif_2 = houses[id_2].first.getDifference(school_m, school_M);
-//            return dif_1 > dif_2;
-//        });
-//}
-// 
-//void getMin_Max(const map<pair<float, float>, int>& s_B, pair<pair<float, float>, int>& min_S, pair<pair<float, float>, int>& max_S, map<pair<float, float>, int>& count_classes) {
-//    pair<pair<float, float>, int> min, min_2, max;
-//    min.second = INT_MIN;
-//    max.second = INT_MIN;
-//    min_2.second = INT_MAX;
-//    for (const auto& it : s_B) {
-//        if (it.second - count_classes[it.first] * 28 > max.second)
-//            max = { it.first,  it.second - count_classes[it.first] * 28 };
-//        if (count_classes[it.first] * 25 - it.second > min.second)
-//            min = { it.first,  count_classes[it.first] * 25 - it.second };
-//        if (it.second - count_classes[it.first] * 25 < min_2.second)
-//            min_2 = { it.first,  it.second - count_classes[it.first] * 25 };
-//        else if (it.second - count_classes[it.first] * 25 == min_2.second) {
-//            if (float(it.second - count_classes[it.first] * 25) / (count_classes[it.first] * 28 - count_classes[it.first] * 25) < (float(min_2.second) / (count_classes[min_2.first] * 28 - count_classes[min_2.first] * 25)))
-//                min_2 = { it.first,  it.second - count_classes[it.first] * 25 };
-//        }
-//    }
-//    if (min.second > 0)
-//        min_S = min;// min
-//    else
-//        min_S = min_2;
-//    max_S = max;// max
-//}
-//
-//pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>> solution_2(const bool& flag, map<pair<float, float>, pair<int, float>>& ef, vector<pair<House, int>>& houses) {
-// true - ratio_dis; false - dis   
-// map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
-//    //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
-//    map<pair<float, float>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
-//    int s = 0;
-//    for (auto house : houses) {
-//        auto tmp = house.first.getMin_dis();//минимальное расстояние
-//        auto t = vector<pair<float, float>>(0);
-//        A[tmp.first].push_back({ {{ house.first.getCord(),{tmp.second,house.first.getChildren()} },t}, house.first.getID() });
-//        //распределение домов к школе с максимальным коэф
-//        s_A[tmp.first] += house.first.getChildren();//подсчет суммы детей в школе
-//        count_class[tmp.first] = 0;
-//        s += house.first.getChildren();
-//    }
-// 
-//    auto count = calcCountClasses(s);
-//    setClasses(false, count, count_class);//true - перераспределение; false - копирование
-//
-//    auto EF = calcEf(A, s_A);
-//    ef = EF;
-//
-//    B = A;
-//    s_B = s_A;
-//
-//    pair<pair<float, float>, int>min_S, max_S;
-//
-//    int count_iteration = 0;
-//
-//    for (;;) {
-//        getMin_Max(s_B, min_S, max_S, const_count);
-//        if (max_S.second == INT_MIN) break;
-//        sorting(flag, min_S.first, max_S.first, B, houses);
-//        auto it = --B[max_S.first].end();
-//        int* ptr = &((*it).first.first.second.second);
-//        if ((min(abs(s_B[min_S.first] - 25 * const_count[min_S.first]), abs(s_B[min_S.first] - 28 * const_count[min_S.first])) + min(abs(s_B[max_S.first] - 25 * const_count[max_S.first]), abs(s_B[max_S.first] - 28 * const_count[max_S.first]))) < (min(abs(s_B[min_S.first] + *ptr - 25 * const_count[min_S.first]), abs(s_B[min_S.first] + *ptr - 28 * const_count[min_S.first])) + min(abs(s_B[max_S.first] - *ptr - 25 * const_count[max_S.first]), abs(s_B[max_S.first] - *ptr - 28 * const_count[max_S.first])))) break;
-//        it->first.first.second.first = houses[it->second].first.getDisToSch(min_S.first);
-//        s_B[max_S.first] -= *ptr;
-//        s_B[min_S.first] += *ptr;
-//        B[min_S.first].push_back(*it);
-//        B[max_S.first].pop_back();
-//        ++count_iteration;
-//    }
-//    return { B,s_B };
-//}
