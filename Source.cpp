@@ -142,7 +142,7 @@ int main() {
         cout << "\n###################\n\n";
 
         fl = true;//без учета детей
-        pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> sol_1 = solution_1();
+        auto sol_1 = solution_1();
         if (sol_1.first)
             ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
         else cout << "Эффективное решение №1 не найдено\n";
@@ -166,8 +166,6 @@ int main() {
         cout << "Невозможно распределить при таком кол-ве детей\n";
         break;
     }
-    default:
-        break;
     }
 
     return 0;
