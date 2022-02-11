@@ -1,4 +1,4 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <numbers>
 #include <fstream>
 #include <string>
@@ -14,7 +14,7 @@
 #define EARTH_RADIUS 6372795 
 #define COUNT_CHILDREN 20 + 1
 #define CONST_DIS 0
-#define INPUT false  // true - ручной ввод; false - случайная генерация
+#define INPUT false  // true - СЂСѓС‡РЅРѕР№ РІРІРѕРґ; false - СЃР»СѓС‡Р°Р№РЅР°СЏ РіРµРЅРµСЂР°С†РёСЏ
 
 using namespace std;
 
@@ -141,29 +141,29 @@ int main() {
 
         cout << "\n###################\n\n";
 
-        fl = true;//без учета детей
+        fl = true;//Р±РµР· СѓС‡РµС‚Р° РґРµС‚РµР№
         auto sol_1 = solution_1();
         if (sol_1.first)
             ef_1 = calcEf(sol_1.second.first, sol_1.second.second);
-        else cout << "Эффективное решение №1 не найдено\n";
+        else cout << "Р­С„С„РµРєС‚РёРІРЅРѕРµ СЂРµС€РµРЅРёРµ в„–1 РЅРµ РЅР°Р№РґРµРЅРѕ\n";
 
         cout << "\n###################\n\n";
 
-        fl = false;//с учетом детей
+        fl = false;//СЃ СѓС‡РµС‚РѕРј РґРµС‚РµР№
         auto sol_2 = solution_1();
         if (sol_2.first)
             ef_2 = calcEf(sol_2.second.first, sol_2.second.second);
-        else cout << "Эффективное решение №2 не найдено\n";
+        else cout << "Р­С„С„РµРєС‚РёРІРЅРѕРµ СЂРµС€РµРЅРёРµ в„–2 РЅРµ РЅР°Р№РґРµРЅРѕ\n";
 
         cout << "yes";
         break;
     }
     case 1: {
-        cout << "Нулевой алгоритм не нашел решение\n";
+        cout << "РќСѓР»РµРІРѕР№ Р°Р»РіРѕСЂРёС‚Рј РЅРµ РЅР°С€РµР» СЂРµС€РµРЅРёРµ\n";
         break;
     }
     case 0: {
-        cout << "Невозможно распределить при таком кол-ве детей\n";
+        cout << "РќРµРІРѕР·РјРѕР¶РЅРѕ СЂР°СЃРїСЂРµРґРµР»РёС‚СЊ РїСЂРё С‚Р°РєРѕРј РєРѕР»-РІРµ РґРµС‚РµР№\n";
         break;
     }
     }
@@ -283,7 +283,7 @@ void readFromTXT() {
     ifstream file("cord.txt");
     vector<string>cord_schools;
     vector<pair<string, int>>cord_houses;
-    while (!file.eof()) {//считывание из файла координат домов и школ
+    while (!file.eof()) {//СЃС‡РёС‚С‹РІР°РЅРёРµ РёР· С„Р°Р№Р»Р° РєРѕРѕСЂРґРёРЅР°С‚ РґРѕРјРѕРІ Рё С€РєРѕР»
         string str;
         getline(file, str);
         if (str[0] == '!') {
@@ -301,22 +301,22 @@ void readFromTXT() {
 
     int id = 0;
     for (auto cord_house : cord_houses) {
-        map<string, float> ratio_dis;//массивы расстояний и коэф расстояний
+        map<string, float> ratio_dis;//РјР°СЃСЃРёРІС‹ СЂР°СЃСЃС‚РѕСЏРЅРёР№ Рё РєРѕСЌС„ СЂР°СЃСЃС‚РѕСЏРЅРёР№
         map<string, int> dis;
         int children;
         if (INPUT)
             children = cord_house.second;
         else
-            children = rand() % COUNT_CHILDREN;//случайная генерация кол-ва детей от 1 до 20
+            children = rand() % COUNT_CHILDREN;//СЃР»СѓС‡Р°Р№РЅР°СЏ РіРµРЅРµСЂР°С†РёСЏ РєРѕР»-РІР° РґРµС‚РµР№ РѕС‚ 1 РґРѕ 20
         sum_children += children;
         all_houses.push_back({ {cord_house.first},{children,id} });
-        for (auto cord_school : cord_schools) {//расчет расстояния от дома до каждой школы
+        for (auto cord_school : cord_schools) {//СЂР°СЃС‡РµС‚ СЂР°СЃСЃС‚РѕСЏРЅРёСЏ РѕС‚ РґРѕРјР° РґРѕ РєР°Р¶РґРѕР№ С€РєРѕР»С‹
             int t = cord_house.first.find(',');
             auto tmp1 = stod(cord_house.first.substr(0, t)), tmp2 = stod(cord_house.first.substr(t + 2)), tmp3 = stod(cord_school.substr(0, t)), tmp4 = stod(cord_school.substr(t + 2));
             dis[cord_school] = calculateTheDistance(tmp1, tmp2, tmp3, tmp4);
-            ratio_dis[cord_school] = float(children) / dis[cord_school];//расчет коэф расстояния от дома до каждой школы
+            ratio_dis[cord_school] = float(children) / dis[cord_school];//СЂР°СЃС‡РµС‚ РєРѕСЌС„ СЂР°СЃСЃС‚РѕСЏРЅРёСЏ РѕС‚ РґРѕРјР° РґРѕ РєР°Р¶РґРѕР№ С€РєРѕР»С‹
         }
-        data_data[id] = { children,dis,cord_house.first,ratio_dis,id }; //создание объекта одного 
+        data_data[id] = { children,dis,cord_house.first,ratio_dis,id }; //СЃРѕР·РґР°РЅРёРµ РѕР±СЉРµРєС‚Р° РѕРґРЅРѕРіРѕ 
         ++id;
     }
 }
@@ -366,7 +366,7 @@ int calcCountClasses(const int& s) {
 
 void setClasses(const int& count_classes, map<string, int>templ_class) {
     int min_c = floor(float(count_classes) / templ_class.size());
-    int remains = count_classes - min_c * templ_class.size();//остаток
+    int remains = count_classes - min_c * templ_class.size();//РѕСЃС‚Р°С‚РѕРє
     for (auto& it : templ_class) it.second += min_c;
     while (remains != 0) {
         int tmp = rand() % templ_class.size();
@@ -450,18 +450,18 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
 
 pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> solution_1() {
     map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>> A, B, const_hs;
-    //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
-    map<string, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
+    //РјР°СЃСЃРёРІ: С€РєРѕР»Р° -> РґРѕРј -> С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё, B_2 - РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅС‹Р№ РїРѕ РєРѕСЌС„
+    map<string, int> s_A, s_B, count_class;//СЃСѓРјРјР° РґРµС‚РµР№ РІ РєР°Р¶РґРѕР№ С€РєРѕР»Рµ, РєРѕР»-РІРѕ РєР»Р°СЃСЃРѕРІ
     int s = 0;
     for (auto house : data_data) {
-        pair<string, float> tmp = house.second.getMin_dis();//минимальное расстояние
+        pair<string, float> tmp = house.second.getMin_dis();//РјРёРЅРёРјР°Р»СЊРЅРѕРµ СЂР°СЃСЃС‚РѕСЏРЅРёРµ
         auto t = vector<string>(0);
         if (tmp.second <= CONST_DIS)
             const_hs[tmp.first].push_back({ {{ house.second.getCord(),{tmp.second,house.second.getChildren()} },t}, house.second.getID() });
         else
             A[tmp.first].push_back({ {{ house.second.getCord(),{tmp.second,house.second.getChildren()} },t}, house.second.getID() });
-        //распределение домов к школе с максимальным коэф
-        s_A[tmp.first] += house.second.getChildren();//подсчет суммы детей в школе
+        //СЂР°СЃРїСЂРµРґРµР»РµРЅРёРµ РґРѕРјРѕРІ Рє С€РєРѕР»Рµ СЃ РјР°РєСЃРёРјР°Р»СЊРЅС‹Рј РєРѕСЌС„
+        s_A[tmp.first] += house.second.getChildren();//РїРѕРґСЃС‡РµС‚ СЃСѓРјРјС‹ РґРµС‚РµР№ РІ С€РєРѕР»Рµ
         count_class[tmp.first] = 0;
         s += house.second.getChildren();
     }
@@ -473,7 +473,7 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>,
     s_B = s_A;
     pair<int, string>h;
     string sch;
-    while (!getH(s_B, h, sch, B)) {//поиск дома для перекидывания
+    while (!getH(s_B, h, sch, B)) {//РїРѕРёСЃРє РґРѕРјР° РґР»СЏ РїРµСЂРµРєРёРґС‹РІР°РЅРёСЏ
         if (h.first == -1)
             return { false, {B,s_B} };
         int* ptr = &(B[h.second][h.first].first.first.second.second);
@@ -599,7 +599,7 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
 
 pair<bool, pair<map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>, map<string, int>>> solution_2(map<string, pair<vector<pair<string, pair<int, int>>>, int>>& ans) {
     map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>> A, B;
-    map<string, int> s_A, s_B;//сумма детей в каждой школе
+    map<string, int> s_A, s_B;//СЃСѓРјРјР° РґРµС‚РµР№ РІ РєР°Р¶РґРѕР№ С€РєРѕР»Рµ
     for (const auto& it : ans) {
         s_A[it.first] = it.second.second;
         for (const auto& it2 : it.second.first)
@@ -702,21 +702,21 @@ string UTF8to1251(string const& utf8) {
 //pair<map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>>, map<pair<float, float>, int>> solution_2(const bool& flag, map<pair<float, float>, pair<int, float>>& ef, vector<pair<House, int>>& houses) {
 // true - ratio_dis; false - dis   
 // map<const pair<float, float>, vector<pair<pair<pair<pair<float, float>, pair<int, int>>, vector<pair<float, float>>>, int>>> A, B;
-//    //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
-//    map<pair<float, float>, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
+//    //РјР°СЃСЃРёРІ: С€РєРѕР»Р° -> РґРѕРј -> С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё, B_2 - РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅС‹Р№ РїРѕ РєРѕСЌС„
+//    map<pair<float, float>, int> s_A, s_B, count_class;//СЃСѓРјРјР° РґРµС‚РµР№ РІ РєР°Р¶РґРѕР№ С€РєРѕР»Рµ, РєРѕР»-РІРѕ РєР»Р°СЃСЃРѕРІ
 //    int s = 0;
 //    for (auto house : houses) {
-//        auto tmp = house.first.getMin_dis();//минимальное расстояние
+//        auto tmp = house.first.getMin_dis();//РјРёРЅРёРјР°Р»СЊРЅРѕРµ СЂР°СЃСЃС‚РѕСЏРЅРёРµ
 //        auto t = vector<pair<float, float>>(0);
 //        A[tmp.first].push_back({ {{ house.first.getCord(),{tmp.second,house.first.getChildren()} },t}, house.first.getID() });
-//        //распределение домов к школе с максимальным коэф
-//        s_A[tmp.first] += house.first.getChildren();//подсчет суммы детей в школе
+//        //СЂР°СЃРїСЂРµРґРµР»РµРЅРёРµ РґРѕРјРѕРІ Рє С€РєРѕР»Рµ СЃ РјР°РєСЃРёРјР°Р»СЊРЅС‹Рј РєРѕСЌС„
+//        s_A[tmp.first] += house.first.getChildren();//РїРѕРґСЃС‡РµС‚ СЃСѓРјРјС‹ РґРµС‚РµР№ РІ С€РєРѕР»Рµ
 //        count_class[tmp.first] = 0;
 //        s += house.first.getChildren();
 //    }
 // 
 //    auto count = calcCountClasses(s);
-//    setClasses(false, count, count_class);//true - перераспределение; false - копирование
+//    setClasses(false, count, count_class);//true - РїРµСЂРµСЂР°СЃРїСЂРµРґРµР»РµРЅРёРµ; false - РєРѕРїРёСЂРѕРІР°РЅРёРµ
 //
 //    auto EF = calcEf(A, s_A);
 //    ef = EF;
