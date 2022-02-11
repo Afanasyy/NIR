@@ -126,7 +126,8 @@ int main() {
 
     map<string, pair<vector<pair<string, pair<int, int>>>, int>> ans;
     int t = solution_0(ans);
-    if (t > 1) {
+    switch (t) {
+    case 2: {
         auto sol_0 = solution_2(ans);
         auto ef_0 = calcEf(sol_0.second.first, sol_0.second.second);
 
@@ -155,11 +156,20 @@ int main() {
         else cout << "Эффективное решение №2 не найдено\n";
 
         cout << "yes";
+        break;
     }
-    else if (t == 1)
+    case 1: {
         cout << "Нулевой алгоритм не нашел решение\n";
-    else if (t == 0)
+        break;
+    }
+    case 0: {
         cout << "Невозможно распределить при таком кол-ве детей\n";
+        break;
+    }
+    default:
+        break;
+    }
+
     return 0;
 }
 
