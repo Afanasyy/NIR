@@ -90,6 +90,7 @@ auto calculateTheDistance(const double&, const double&, const double&, const dou
 auto readFromTXT()->void;
 auto readHFromDB()->void;
 auto readSFromDB()->void;
+auto writeToDB(const string&, map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&)->void;
 auto UTF8to1251(string const&)->string;
 
 
@@ -126,7 +127,9 @@ int main() {
         auto ef_0 = calcEf(sol_0.second.first);
         
         cout << endl << endl;
-        output(sol_0);*/
+        output(sol_0);
+        writeToDB("ans_1", sol_1.second.first);*/
+
 
         pair<int, double> ef_1, ef_2;
 
@@ -139,6 +142,8 @@ int main() {
         else cout << "Эффективное решение №1 не найдено\n";
         cout << endl << endl;
         output(sol_1);
+        writeToDB("ans_2", sol_1.second.first);
+        
 
         cout << "\n###################\n\n";
 
@@ -149,6 +154,8 @@ int main() {
         else cout << "Эффективное решение №2 не найдено\n";
         cout << endl << endl;
         output(sol_2);
+        writeToDB("ans_3", sol_1.second.first);
+
         break;
     }
     case 1: {
@@ -217,6 +224,10 @@ int callback_2(void* data, int argc, char** argv, char** azColName) {
             name = UTF8to1251(argv[i]);
     }
     schools[id] = { cord,{addr,name} };
+    return 0;
+}
+
+int callback_3(void* data, int argc, char** argv, char** azColName) {
     return 0;
 }
 
@@ -365,6 +376,41 @@ void readFromTXT() {
         data_data[id] = { children,dis,cord_house.first,id }; //создание объекта одного 
         ++id;
     }
+}
+
+string quotesql(const string& s) {
+    return string("'") + s + string("'");
+}
+
+void writeToDB(const string&name, map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&ans) {
+    sqlite3* db;
+    char* zErrMsg = 0;
+    int rc;
+    string sql;
+    string data = "Callback function called";
+    string idh, ids;
+    /* Open database */
+    rc = sqlite3_open("db.db", &db);
+
+    if (rc) {
+        cout << "Can't open database:\n" << sqlite3_errmsg(db);
+        return;
+    }
+    else
+        cout << "Opened database successfully\n";
+    sql = "DELETE FROM "+name;
+    rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
+
+    sql = "CREATE TABLE if not exists " + name + " (idh TEXT, ids TEXT)";
+    rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
+
+    for (const auto& it : ans) {
+        for (const auto& it2 : it.second) {
+            sql = "INSERT INTO " + name + " (idh, ids) VALUES (" + quotesql(to_string(it2.second)) + ',' + quotesql(it.first) + ");";
+            rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
+        }
+    }    
+    sqlite3_close(db);
 }
 
 double calculateTheDistance(const double& a1, const double& b1, const double& a2, const double& b2) {
