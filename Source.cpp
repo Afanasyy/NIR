@@ -13,7 +13,7 @@
 
 #define EARTH_RADIUS 6372795 
 #define COUNT_CHILDREN 4
-#define CONST_DIS 500
+#define CONST_DIS 300
 #define INPUT false  // true - ручной ввод; false - случайная генерация
 
 using namespace std;
@@ -39,8 +39,8 @@ public:
     map<string, int> getDis() {
         return dis;
     }
-    pair<string, double> getMin_dis() {
-        pair<string, double> m;
+    pair<string, int> getMin_dis() {
+        pair<string, int> m;
         m.second = INT_MAX;
         for (auto i : dis)
             if (i.second < m.second) m = i;
@@ -74,8 +74,9 @@ bool fl, set_cl = false;
 int sum_children = 0;
 vector<pair<int, int>>all_houses;
 map<string, int>templ_classes;
+vector<vector<pair<int, string>>> const_h;
 
-auto solution_0(map<string, pair<vector<pair<int, int>>, int>>&)->int;
+auto solution_0(map<string, pair<vector<pair<int, int>>, int>>&,int&)->int;
 auto calcEf(const map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&) ->pair<int, double>;
 auto calcCountClasses(const int&)->int;
 auto setClasses(const int&, map<string, int>)->void;
@@ -84,7 +85,7 @@ auto getH(map<string, int>&, pair<int, string>&, string&, map<const string, vect
 auto smart_search(const vector<pair<int, int>>&, int, int, vector<pair<vector<pair<int, int>>, int>>, int, int, int&)->vector<pair<vector<pair<int, int>>, int>>;
 auto solution_1()->pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>>;
 auto getHs(map<string, int>&, int&, vector<int>& , string& , string& , map<const string, vector<pair<pair<pair<string, pair<int, int>>, vector<string>>, int>>>&)->bool;
-auto solution_2(map<string, pair<vector<pair<int, int>>, int>>&)->pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>>;
+auto solution_2(map<string, pair<vector<pair<int, int>>, int>>&, const int&)->pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>>;
 auto calculateTheDistance(const double&, const double&, const double&, const double&)->double;
 auto readFromTXT()->void;
 auto readHFromDB()->void;
@@ -105,7 +106,8 @@ int main() {
     //readFromTXT();
 
     map<string, pair<vector<pair<int, int>>, int>> ans;
-    int t = solution_0(ans);
+    int l;
+    int t = solution_0(ans,l);
     switch (t) {
     case 2: {
         auto f = [](const auto& sol, const int& id)->string {
@@ -115,15 +117,16 @@ int main() {
         };
         auto output = [](const auto& sol) {
             for (const auto& it : sol.second.first) {
-                cout << it.first << '\n';
+                cout << schools[it.first].second.first << " / " << schools[it.first].second.second << '\n';
                 for (const auto& it2 : it.second)
                     cout << "\t" << addr[it2.second] << '\t' << it2.first.first.second << "\n";
             }};
-        auto sol_0 = solution_2(ans);
+
+        /*auto sol_0 = solution_2(ans, l);
         auto ef_0 = calcEf(sol_0.second.first);
         
         cout << endl << endl;
-        output(sol_0);
+        output(sol_0);*/
 
         pair<int, double> ef_1, ef_2;
 
@@ -191,6 +194,9 @@ int callback_1(void* data, int argc, char** argv, char** azColName) {
         else if (tmp == "addr")
             addr[id] = (UTF8to1251(argv[i]));
     }
+    if (id == 2) {
+        cout << "Csac";
+    }
     if (children != 0) all_houses.push_back({ children,id });
     data_data[id] = { children,dis,cord,id };
     set_cl = true;
@@ -214,7 +220,9 @@ int callback_2(void* data, int argc, char** argv, char** azColName) {
     return 0;
 }
 
-int solution_0(map<string, pair<vector<pair<int, int>>, int>>& ans) {
+int solution_0(map<string, pair<vector<pair<int, int>>, int>>& ans,int&last) {
+    last = const_h.size() == 0 ? 0 : const_h.size() - 1;
+    const_h.push_back({});
     for (const auto& it : templ_classes) ans[it.first];
     auto count = calcCountClasses(sum_children);
     if (count == -1)
@@ -227,16 +235,24 @@ int solution_0(map<string, pair<vector<pair<int, int>>, int>>& ans) {
     vector<int>tmp;
     bool flag2;
     while (!all_houses.empty()) {
-        flag2 = false;
+        flag2 = false;                
         for (const auto& it : templ_classes) {
             if (all_houses.empty()) break;
-            if (ans[it.first].second + all_houses.back().first <= const_count[it.first] * 28) {
-                ans[it.first].first.push_back(all_houses.back());
-                ans[it.first].second += all_houses.back().first;
+            auto t = data_data[all_houses.back().second].getMin_dis();
+            if (t.second <= CONST_DIS) {
+                ans[t.first].second += data_data[all_houses.back().second].getChildren();
+                const_h.back().push_back({ all_houses.back().second, t.first });
                 all_houses.pop_back();
-                flag2 = true;
                 continue;
             }
+            else
+                if (ans[it.first].second + all_houses.back().first <= const_count[it.first] * 28) {
+                    ans[it.first].first.push_back(all_houses.back());
+                    ans[it.first].second += all_houses.back().first;
+                    all_houses.pop_back();
+                    flag2 = true;
+                    continue;
+                }
         }
         if (!flag2) {
             tmp.push_back(all_houses.back().first);
@@ -476,17 +492,19 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
 }
 
 pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>> solution_1() {
-    map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>> A, B, const_hs;
+    int last = const_h.size() == 0 ? 0 : const_h.size() - 1;
+    const_h.push_back({});
+    map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>> A, B;
     //массив: школа -> дом -> характеристики, B_2 - отсортированный по коэф
     map<string, int> s_A, s_B, count_class;//сумма детей в каждой школе, кол-во классов
     int s = 0;
     for (auto house : data_data) {
-        pair<string, double> tmp = house.second.getMin_dis();//минимальное расстояние
+        pair<string, int> tmp = house.second.getMin_dis();//минимальное расстояние
         auto t = vector<string>(0);
         int c = house.second.getChildren();
         if (c != 0) {
             if (tmp.second <= CONST_DIS)
-                const_hs[tmp.first].push_back({ { { tmp.second, c },t}, house.first });
+                const_h.back().push_back({ house.first,tmp.first });
             else
                 A[tmp.first].push_back({ {{tmp.second,c },t}, house.first });
         }
@@ -518,6 +536,8 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
         ++count_iteration;
     }
     cout << "count_iteration = " << count_iteration << '\n';
+    for (const auto& it : const_h[last])
+        B[it.second].push_back({ {{data_data[it.first].getDisToSch(it.second),data_data[it.first].getChildren()},vector<string>(0)},it.first });
     return { true, {B,s_B} };
 }
 
@@ -629,7 +649,7 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
     return true;
 }
 
-pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>> solution_2(map<string, pair<vector<pair<int, int>>, int>>& ans) {
+pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>> solution_2(map<string, pair<vector<pair<int, int>>, int>>& ans,const int&last) {
     map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>> A, B;
     map<string, int> s_A, s_B;//сумма детей в каждой школе
     for (const auto& it : ans) {
@@ -670,6 +690,8 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
         ++count_iteration;
     }
     cout << "count_iteration = " << count_iteration << '\n';
+    for (const auto& it : const_h[last]) 
+        B[it.second].push_back({ {{data_data[it.first].getDisToSch(it.second),data_data[it.first].getChildren()},vector<string>(0)},it.first });    
     return{ true,{B,s_B} };
 }
 
