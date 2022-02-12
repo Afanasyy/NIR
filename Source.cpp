@@ -13,7 +13,7 @@
 
 #define EARTH_RADIUS 6372795 
 #define COUNT_CHILDREN 4
-#define CONST_DIS 300
+#define CONST_DIS 0
 #define INPUT false  // true - ручной ввод; false - случайная генерация
 
 using namespace std;
@@ -128,7 +128,7 @@ int main() {
         
         cout << endl << endl;
         output(sol_0);
-        writeToDB("ans_1", sol_1.second.first);*/
+        writeToDB("ans_0", sol_0.second.first);*/
 
 
         pair<int, double> ef_1, ef_2;
@@ -142,7 +142,7 @@ int main() {
         else cout << "Эффективное решение №1 не найдено\n";
         cout << endl << endl;
         output(sol_1);
-        writeToDB("ans_2", sol_1.second.first);
+        writeToDB("ans_1", sol_1.second.first);
         
 
         cout << "\n###################\n\n";
@@ -154,7 +154,7 @@ int main() {
         else cout << "Эффективное решение №2 не найдено\n";
         cout << endl << endl;
         output(sol_2);
-        writeToDB("ans_3", sol_1.second.first);
+        writeToDB("ans_2", sol_2.second.first);
 
         break;
     }
