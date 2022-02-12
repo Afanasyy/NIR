@@ -13,7 +13,7 @@
 
 #define EARTH_RADIUS 6372795 
 #define COUNT_CHILDREN 4
-#define CONST_DIS 0
+#define CONST_DIS 500
 #define INPUT false  // true - ручной ввод; false - случайная генерация
 
 using namespace std;
@@ -67,6 +67,7 @@ private:
 };
 
 map<int, House>data_data;
+map<string, pair<string, pair<string,string>>>schools;
 map<int, string>addr;
 map<string, int>const_count;
 bool fl, set_cl = false;
@@ -86,7 +87,8 @@ auto getHs(map<string, int>&, int&, vector<int>& , string& , string& , map<const
 auto solution_2(map<string, pair<vector<pair<int, int>>, int>>&)->pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>, map<string, int>>>;
 auto calculateTheDistance(const double&, const double&, const double&, const double&)->double;
 auto readFromTXT()->void;
-auto readFromDB()->void;
+auto readHFromDB()->void;
+auto readSFromDB()->void;
 auto UTF8to1251(string const&)->string;
 
 
@@ -97,7 +99,8 @@ int main() {
     SetConsoleCP(1251);
     //srand(time(0));
 
-    readFromDB();
+    readSFromDB();
+    readHFromDB();
 
     //readFromTXT();
 
@@ -157,7 +160,7 @@ int main() {
     return 0;
 }
 
-int callback(void* data, int argc, char** argv, char** azColName) {
+int callback_1(void* data, int argc, char** argv, char** azColName) {
     int id;
     map<string, int>dis;
     int children;
@@ -194,6 +197,23 @@ int callback(void* data, int argc, char** argv, char** azColName) {
     return 0;
 }
 
+int callback_2(void* data, int argc, char** argv, char** azColName) {
+    string id, addr, cord, name;
+    for (int i = 0; i < argc; i++) {
+        string tmp = azColName[i];
+        if (tmp == "id")
+            id = argv[i];
+        else if (tmp == "addr")
+            addr = UTF8to1251(argv[i]);
+        else if (tmp == "cord")
+            cord = argv[i];
+        else if (tmp == "name")
+            name = UTF8to1251(argv[i]);
+    }
+    schools[id] = { cord,{addr,name} };
+    return 0;
+}
+
 int solution_0(map<string, pair<vector<pair<int, int>>, int>>& ans) {
     for (const auto& it : templ_classes) ans[it.first];
     auto count = calcCountClasses(sum_children);
@@ -227,7 +247,7 @@ int solution_0(map<string, pair<vector<pair<int, int>>, int>>& ans) {
     else return 1;
 }
 
-void readFromDB() {
+void readHFromDB() {
     sqlite3* db;
     char* zErrMsg = 0;
     int rc;
@@ -248,7 +268,39 @@ void readFromDB() {
     sql = "SELECT * from final";
     /* Execute SQL statement */
 
-    rc = sqlite3_exec(db, sql.c_str(), callback, (void*)data.c_str(), &zErrMsg);
+    rc = sqlite3_exec(db, sql.c_str(), callback_1, (void*)data.c_str(), &zErrMsg);
+
+    if (rc != SQLITE_OK) {
+        cout << "SQL error:\n" << zErrMsg;
+        sqlite3_free(zErrMsg);
+    }
+    else
+        cout << "Operation done successfully\n";
+    sqlite3_close(db);
+}
+
+void readSFromDB() {
+    sqlite3* db;
+    char* zErrMsg = 0;
+    int rc;
+    string sql;
+    string data = "Callback function called";
+    /* Open database */
+    rc = sqlite3_open("db.db", &db);
+
+    if (rc) {
+        cout << "Can't open database:\n" << sqlite3_errmsg(db);
+        return;
+    }
+    else
+        cout << "Opened database successfully\n";
+
+
+    /* Create SQL statement */
+    sql = "SELECT * from schools";
+    /* Execute SQL statement */
+
+    rc = sqlite3_exec(db, sql.c_str(), callback_2, (void*)data.c_str(), &zErrMsg);
 
     if (rc != SQLITE_OK) {
         cout << "SQL error:\n" << zErrMsg;
@@ -582,9 +634,11 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
     map<string, int> s_A, s_B;//сумма детей в каждой школе
     for (const auto& it : ans) {
         s_A[it.first] = it.second.second;
-        for (const auto& it2 : it.second.first)
-            A[it.first].push_back({ {{data_data[it2.second].getDisToSch(it.first),it2.first},vector<string>(0)},it2.second });
-    }   
+        for (const auto& it2 : it.second.first) {
+            auto dis = data_data[it2.second].getDisToSch(it.first);
+            A[it.first].push_back({ {{dis,it2.first},vector<string>(0)},it2.second });
+        }
+    }
     auto t = calcEf(A);
     cout << "EF = " << t.first << '\n';
     B = A;
