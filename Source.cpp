@@ -10,10 +10,11 @@
 #include <clocale> 
 #include <windows.h>
 #include "sqlite/sqlite3.h"
+#include <time.h>
 
 #define EARTH_RADIUS 6372795 
 #define COUNT_CHILDREN 4
-#define CONST_DIS 0
+//#define CONST_DIS 0
 #define INPUT false  // true - ручной ввод; false - случайная генерация
 
 using namespace std;
@@ -76,6 +77,8 @@ vector<pair<int, int>>all_houses;
 map<string, int>templ_classes;
 vector<vector<pair<int, string>>> const_h;
 
+int CONST_DIS;
+
 auto solution_0(map<string, pair<vector<pair<int, int>>, int>>&,int&)->int;
 auto calcEf(const map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&) ->pair<int, double>;
 auto calcCountClasses(const int&)->int;
@@ -101,14 +104,25 @@ int main() {
     SetConsoleCP(1251);
     //srand(time(0));
 
+    clock_t start, end;
+    vector<double>seconds;
+    start = clock();
     readSFromDB();
     readHFromDB();
-
+    end = clock();
+    seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
     //readFromTXT();
+
+
 
     map<string, pair<vector<pair<int, int>>, int>> ans;
     int l;
-    int t = solution_0(ans,l);
+
+    start = clock();
+    int t = solution_0(ans, l);
+    end = clock();
+    seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
+
     switch (t) {
     case 2: {
         auto f = [](const auto& sol, const int& id)->string {
@@ -123,39 +137,79 @@ int main() {
                     cout << "\t" << addr[it2.second] << '\t' << it2.first.first.second << "\n";
             }};
 
-        /*auto sol_0 = solution_2(ans, l);
+        CONST_DIS = 0;
+        start = clock();
+        auto sol_0 = solution_2(ans, l);
         auto ef_0 = calcEf(sol_0.second.first);
-        
-        cout << endl << endl;
-        output(sol_0);
-        writeToDB("ans_0", sol_0.second.first);*/
-
-
-        pair<int, double> ef_1, ef_2;
+        cout << endl << endl << ef_0.first << " / " << ef_0.second << endl << endl;
+        //output(sol_0);
+        writeToDB("ans_0", sol_0.second.first);
+        end = clock();
+        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
 
         cout << "\n###################\n\n";
 
+        start = clock();
         fl = true;//без учета детей
         auto sol_1 = solution_1();
-        if (sol_1.first)
-            ef_1 = calcEf(sol_1.second.first);
-        else cout << "Эффективное решение №1 не найдено\n";
-        cout << endl << endl;
-        output(sol_1);
+        auto ef_1 = calcEf(sol_1.second.first);
+        cout << endl << endl << ef_1.first << " / " << ef_1.second << endl << endl;
+        //output(sol_1);
         writeToDB("ans_1", sol_1.second.first);
-        
+        end = clock();
+        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
 
         cout << "\n###################\n\n";
 
+        start = clock();
         fl = false;//с учетом детей
         auto sol_2 = solution_1();
-        if (sol_2.first)
-            ef_2 = calcEf(sol_2.second.first);
-        else cout << "Эффективное решение №2 не найдено\n";
-        cout << endl << endl;
-        output(sol_2);
+        auto ef_2 = calcEf(sol_2.second.first);
+        cout << endl << endl << ef_2.first << " / " << ef_2.second << endl << endl;
+        //output(sol_2);
         writeToDB("ans_2", sol_2.second.first);
+        end = clock();
+        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
 
+
+        cout << "\n###################\n###################\n\n";
+
+
+        CONST_DIS = 300;
+        start = clock();
+        auto sol_3 = solution_2(ans, l);
+        auto ef_3 = calcEf(sol_3.second.first);
+        cout << endl << endl << ef_3.first << " / " << ef_3.second << endl << endl;
+        //output(sol_0);
+        writeToDB("ans_3", sol_3.second.first);
+        end = clock();
+        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
+
+        cout << "\n###################\n\n";
+
+        start = clock();
+        fl = true;//без учета детей
+        auto sol_4 = solution_1();
+        auto ef_4 = calcEf(sol_4.second.first);
+        cout << endl << endl << ef_4.first << " / " << ef_4.second << endl << endl;
+        //output(sol_1);
+        writeToDB("ans_4", sol_4.second.first);
+        end = clock();
+        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
+
+        cout << "\n###################\n\n";
+
+        start = clock();
+        fl = false;//с учетом детей
+        auto sol_5 = solution_1();
+        auto ef_5 = calcEf(sol_5.second.first);
+        cout << endl << endl << ef_5.first << " / " << ef_5.second << endl << endl;
+        //output(sol_2);
+        writeToDB("ans_5", sol_5.second.first);
+        end = clock();
+        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
+
+        cout << "\n###################\n\n";
         break;
     }
     case 1: {
@@ -167,6 +221,7 @@ int main() {
         break;
     }
     }
+
     return 0;
 }
 
@@ -265,7 +320,7 @@ int solution_0(map<string, pair<vector<pair<int, int>>, int>>& ans,int&last) {
                     continue;
                 }
         }
-        if (!flag2) {
+        if (!flag2 && !all_houses.empty()) {
             tmp.push_back(all_houses.back().first);
             all_houses.pop_back();
         }
@@ -281,7 +336,7 @@ void readHFromDB() {
     string sql;
     string data = "Callback function called";
     /* Open database */
-    rc = sqlite3_open("db.db", &db);
+    rc = sqlite3_open("S:\\Users\\griki\\Source\\Repos\\NIR_js\\db.db", &db);
 
     if (rc) {
         cout << "Can't open database:\n" << sqlite3_errmsg(db);
@@ -313,7 +368,7 @@ void readSFromDB() {
     string sql;
     string data = "Callback function called";
     /* Open database */
-    rc = sqlite3_open("db.db", &db);
+    rc = sqlite3_open("S:\\Users\\griki\\Source\\Repos\\NIR_js\\db.db", &db);
 
     if (rc) {
         cout << "Can't open database:\n" << sqlite3_errmsg(db);
@@ -390,7 +445,7 @@ void writeToDB(const string&name, map<const string, vector<pair<pair<pair<int, i
     string data = "Callback function called";
     string idh, ids;
     /* Open database */
-    rc = sqlite3_open("db.db", &db);
+    rc = sqlite3_open("S:\\Users\\griki\\Source\\Repos\\NIR_js\\db.db", &db);
 
     if (rc) {
         cout << "Can't open database:\n" << sqlite3_errmsg(db);
@@ -401,12 +456,12 @@ void writeToDB(const string&name, map<const string, vector<pair<pair<pair<int, i
     sql = "DELETE FROM "+name;
     rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
 
-    sql = "CREATE TABLE if not exists " + name + " (idh TEXT, ids TEXT)";
+    sql = "CREATE TABLE if not exists " + name + " (idh TEXT, ids TEXT, child INTEGER)";
     rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
 
     for (const auto& it : ans) {
         for (const auto& it2 : it.second) {
-            sql = "INSERT INTO " + name + " (idh, ids) VALUES (" + quotesql(to_string(it2.second)) + ',' + quotesql(it.first) + ");";
+            sql = "INSERT INTO " + name + " (idh, ids, child) VALUES (" + quotesql(to_string(it2.second)) + ',' + quotesql(it.first) + ',' + quotesql(to_string(it2.first.first.second)) + ");";
             rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
         }
     }    
@@ -468,10 +523,7 @@ void setClasses(const int& count_classes, map<string, int>templ_class) {
 }
 
 bool foo(vector<string>& v, const string& t) {
-    for (auto it : v)
-        if (it == t)
-            return false;
-    if (v.size() == 2) v.erase(v.begin());
+    for (auto it : v)        if (it == t)            return false;
     return true;
 }
 
@@ -557,16 +609,19 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
         //распределение домов к школе с максимальным коэф
         s_A[tmp.first] += c;//подсчет суммы детей в школе
         count_class[tmp.first] = 0;
-        s += c;
     }
 
-    auto count = calcCountClasses(s);
 
     int count_iteration = 0;
+    if(CONST_DIS==0)
+    writeToDB("ans_6", A);
+    else
+        writeToDB("ans_7", A);
     B = A;
     s_B = s_A;
     pair<int, string>h;
     string sch;
+    int l = 0;
     while (!getH(s_B, h, sch, B)) {//поиск дома для перекидывания
         if (h.first == -1)
             return { false, {B,s_B} };
@@ -575,10 +630,15 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
         s_B[sch] += *ptr;
         B[h.second][h.first].first.first.first = data_data[B[h.second][h.first].second].getDisToSch(sch);
         B[h.second][h.first].first.second.push_back(h.second);
+        if (B[h.second][h.first].first.second.size() == 6)
+            B[h.second][h.first].first.second.erase(B[h.second][h.first].first.second.begin());
         B[sch].push_back(B[h.second][h.first]);
         B[h.second].erase(B[h.second].begin() + h.first);
         auto t = calcEf(B);
-        cout << "EF = " << t.first << '\n';
+        if (t.first < l)
+            cout << "dasdasd";       
+        l = t.first;
+        //cout << "EF = " << t.first << '\n';
         ++count_iteration;
     }
     cout << "count_iteration = " << count_iteration << '\n';
@@ -687,11 +747,11 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
                 for (const auto& it : best.second) h_in.push_back(it.second);
                 s_o = it.first;
                 s_in = best.first.second;
-                cout << "count_iteration in rec = " << count_iteration << '\n';
+                //cout << "count_iteration in rec = " << count_iteration << '\n';
                 return false;
             }
         }
-    cout << "count_iteration in rec = " << count_iteration << '\n';
+    //cout << "count_iteration in rec = " << count_iteration << '\n';
     return true;
 }
 
@@ -707,6 +767,14 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
     }
     auto t = calcEf(A);
     cout << "EF = " << t.first << '\n';
+
+
+    if (CONST_DIS == 0)
+        writeToDB("ans_8", A);
+    else
+        writeToDB("ans_9", A);
+
+
     B = A;
     s_B = s_A;
 
@@ -732,7 +800,7 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
             B[s_in].erase(B[s_in].begin() + tmp);
         }
         auto t = calcEf(B);
-        cout << "EF = " << t.first << '\n';
+       // cout << "EF = " << t.first << '\n';
         ++count_iteration;
     }
     cout << "count_iteration = " << count_iteration << '\n';
