@@ -76,6 +76,7 @@ int sum_children = 0;
 vector<pair<int, int>>all_houses;
 map<string, int>templ_classes;
 vector<vector<pair<int, string>>> const_h;
+string path = "db2.db";
 
 int CONST_DIS;
 
@@ -111,6 +112,8 @@ int main() {
     readHFromDB();
     end = clock();
     seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
+
+
     //readFromTXT();
 
 
@@ -209,6 +212,7 @@ int main() {
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
 
+
         cout << "\n###################\n\n";
         break;
     }
@@ -238,6 +242,8 @@ int callback_1(void* data, int argc, char** argv, char** azColName) {
             cord = argv[i];
             cord += ", ";
         }
+        else if (tmp == "cord")
+            cord = argv[i];
         else if (tmp == "lon")
             cord += argv[i];
         else if (tmp == "child") {
@@ -336,7 +342,7 @@ void readHFromDB() {
     string sql;
     string data = "Callback function called";
     /* Open database */
-    rc = sqlite3_open("S:\\Users\\griki\\Source\\Repos\\NIR_js\\db.db", &db);
+    rc = sqlite3_open(path.c_str(), &db);
 
     if (rc) {
         cout << "Can't open database:\n" << sqlite3_errmsg(db);
@@ -368,7 +374,7 @@ void readSFromDB() {
     string sql;
     string data = "Callback function called";
     /* Open database */
-    rc = sqlite3_open("S:\\Users\\griki\\Source\\Repos\\NIR_js\\db.db", &db);
+    rc = sqlite3_open(path.c_str(), &db);
 
     if (rc) {
         cout << "Can't open database:\n" << sqlite3_errmsg(db);
@@ -445,7 +451,7 @@ void writeToDB(const string&name, map<const string, vector<pair<pair<pair<int, i
     string data = "Callback function called";
     string idh, ids;
     /* Open database */
-    rc = sqlite3_open("S:\\Users\\griki\\Source\\Repos\\NIR_js\\db.db", &db);
+    rc = sqlite3_open(path.c_str(), &db);
 
     if (rc) {
         cout << "Can't open database:\n" << sqlite3_errmsg(db);
