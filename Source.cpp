@@ -74,9 +74,10 @@ map<string, int>const_count;
 bool fl, set_cl = false;
 int sum_children = 0;
 vector<pair<int, int>>all_houses;
+vector<int>houses_with_zero;
 map<string, int>templ_classes;
 vector<vector<pair<int, string>>> const_h;
-string path = "db2.db";
+string path = "db3.db";
 
 int CONST_DIS;
 
@@ -95,6 +96,7 @@ auto readFromTXT()->void;
 auto readHFromDB()->void;
 auto readSFromDB()->void;
 auto writeToDB(const string&, map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&)->void;
+auto writeZeroToDB()->void;
 auto UTF8to1251(string const&)->string;
 
 
@@ -113,6 +115,7 @@ int main() {
     end = clock();
     seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
 
+    cout << "Time of reading = " << seconds.back()<<endl;
 
     //readFromTXT();
 
@@ -125,6 +128,9 @@ int main() {
     int t = solution_0(ans, l);
     end = clock();
     seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
+    cout << "Time of solution_0 = " << seconds.back()<<endl;
+
+    writeZeroToDB();
 
     switch (t) {
     case 2: {
@@ -149,7 +155,7 @@ int main() {
         writeToDB("ans_0", sol_0.second.first);
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
-
+        cout << "Time of solution_2 / 0 = " << seconds.back()<<endl;
         cout << "\n###################\n\n";
 
         start = clock();
@@ -161,7 +167,7 @@ int main() {
         writeToDB("ans_1", sol_1.second.first);
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
-
+        cout << "Time of solution_1 / T / 0 = " << seconds.back() << endl;
         cout << "\n###################\n\n";
 
         start = clock();
@@ -173,7 +179,7 @@ int main() {
         writeToDB("ans_2", sol_2.second.first);
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
-
+        cout << "Time of solution_1 / F / 0 = " << seconds.back() << endl;
 
         cout << "\n###################\n###################\n\n";
 
@@ -187,7 +193,7 @@ int main() {
         writeToDB("ans_3", sol_3.second.first);
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
-
+        cout << "Time of solution_2 / 300 = " << seconds.back() << endl;
         cout << "\n###################\n\n";
 
         start = clock();
@@ -199,7 +205,7 @@ int main() {
         writeToDB("ans_4", sol_4.second.first);
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
-
+        cout << "Time of solution_1 / T / 300 = " << seconds.back() << endl;
         cout << "\n###################\n\n";
 
         start = clock();
@@ -211,7 +217,7 @@ int main() {
         writeToDB("ans_5", sol_5.second.first);
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
-
+        cout << "Time of solution_1 / F / 300 = " << seconds.back() << endl;
 
         cout << "\n###################\n\n";
         break;
@@ -261,11 +267,9 @@ int callback_1(void* data, int argc, char** argv, char** azColName) {
         }
         else if (tmp == "addr")
             addr[id] = (UTF8to1251(argv[i]));
-    }
-    if (id == 2) {
-        cout << "Csac";
-    }
+    }   
     if (children != 0) all_houses.push_back({ children,id });
+    else houses_with_zero.push_back(id);
     data_data[id] = { children,dis,cord,id };
     set_cl = true;
     return 0;
@@ -441,6 +445,35 @@ void readFromTXT() {
 
 string quotesql(const string& s) {
     return string("'") + s + string("'");
+}
+
+void writeZeroToDB() {
+    sqlite3* db;
+    char* zErrMsg = 0;
+    int rc;
+    string sql;
+    string data = "Callback function called";
+    string idh, ids;
+    /* Open database */
+    rc = sqlite3_open(path.c_str(), &db);
+
+    if (rc) {
+        cout << "Can't open database:\n" << sqlite3_errmsg(db);
+        return;
+    }
+    else
+        cout << "Opened database successfully\n";
+
+    sql = "DELETE FROM zero";
+    rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
+
+    sql = "CREATE TABLE if not exists zero (idh integer)";
+    rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
+    for (const auto& it : houses_with_zero) {
+        sql = "INSERT INTO zero (idh) VALUES (" + to_string(it) + ");";
+        rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
+    }
+
 }
 
 void writeToDB(const string&name, map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&ans) {
@@ -641,9 +674,6 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
         B[sch].push_back(B[h.second][h.first]);
         B[h.second].erase(B[h.second].begin() + h.first);
         auto t = calcEf(B);
-        if (t.first < l)
-            cout << "dasdasd";       
-        l = t.first;
         //cout << "EF = " << t.first << '\n';
         ++count_iteration;
     }
@@ -753,11 +783,11 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
                 for (const auto& it : best.second) h_in.push_back(it.second);
                 s_o = it.first;
                 s_in = best.first.second;
-                //cout << "count_iteration in rec = " << count_iteration << '\n';
+                //cout << "\tcount_iteration in rec = " << count_iteration << '\n';
                 return false;
             }
         }
-    //cout << "count_iteration in rec = " << count_iteration << '\n';
+    //cout << "\tcount_iteration in rec = " << count_iteration << '\n';
     return true;
 }
 
@@ -772,7 +802,7 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
         }
     }
     auto t = calcEf(A);
-    cout << "EF = " << t.first << '\n';
+    //cout << "EF = " << t.first << '\n';
 
 
     if (CONST_DIS == 0)
@@ -806,7 +836,7 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
             B[s_in].erase(B[s_in].begin() + tmp);
         }
         auto t = calcEf(B);
-       // cout << "EF = " << t.first << '\n';
+        //cout << "EF = " << t.first << '\n';
         ++count_iteration;
     }
     cout << "count_iteration = " << count_iteration << '\n';

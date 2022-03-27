@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{52c1fb30-2246-45e5-b74b-3423d888c035}</ProjectGuid>
+    <ProjectGuid>{c4e2d242-d89e-4a39-ba33-9dca8ed186da}</ProjectGuid>
     <RootNamespace>NIR</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -131,7 +131,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,6 +139,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="sqlite\sqlite3.h" />
+    <ClInclude Include="sqlite\sqlite3ext.h" />
+  </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="sqlite\shell.c" />
