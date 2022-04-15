@@ -16,7 +16,8 @@
 #define COUNT_CHILDREN 4
 //#define CONST_DIS 0
 #define INPUT false  // true - ручной ввод; false - случайная генерация
-
+#define MIN_CHILDREN 25
+#define MAX_CHILDREN 28
 using namespace std;
 
 class House {
@@ -95,6 +96,7 @@ auto calculateTheDistance(const double&, const double&, const double&, const dou
 auto readFromTXT()->void;
 auto readHFromDB()->void;
 auto readSFromDB()->void;
+auto rewriteSchDB()->void;
 auto writeToDB(const string&, map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&)->void;
 auto writeZeroToDB()->void;
 auto UTF8to1251(string const&)->string;
@@ -131,6 +133,7 @@ int main() {
     cout << "Time of solution_0 = " << seconds.back()<<endl;
 
     writeZeroToDB();
+    rewriteSchDB();
 
     switch (t) {
     case 2: {
@@ -147,16 +150,6 @@ int main() {
             }};
 
         CONST_DIS = 0;
-        start = clock();
-        auto sol_0 = solution_2(ans, l);
-        auto ef_0 = calcEf(sol_0.second.first);
-        cout << endl << endl << ef_0.first << " / " << ef_0.second << endl << endl;
-        //output(sol_0);
-        writeToDB("ans_0", sol_0.second.first);
-        end = clock();
-        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
-        cout << "Time of solution_2 / 0 = " << seconds.back()<<endl;
-        cout << "\n###################\n\n";
 
         start = clock();
         fl = true;//без учета детей
@@ -168,8 +161,8 @@ int main() {
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
         cout << "Time of solution_1 / T / 0 = " << seconds.back() << endl;
-        cout << "\n###################\n\n";
-
+        cout << "\n###################\n\n";        
+        
         start = clock();
         fl = false;//с учетом детей
         auto sol_2 = solution_1();
@@ -180,22 +173,23 @@ int main() {
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
         cout << "Time of solution_1 / F / 0 = " << seconds.back() << endl;
+        cout << "\n###################\n\n";
+
+        start = clock();
+        auto sol_0 = solution_2(ans, l);
+        auto ef_0 = calcEf(sol_0.second.first);
+        cout << endl << endl << ef_0.first << " / " << ef_0.second << endl << endl;
+        //output(sol_0);
+        writeToDB("ans_3", sol_0.second.first);
+        end = clock();
+        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
+        cout << "Time of solution_2 / 0 = " << seconds.back() << endl;
 
         cout << "\n###################\n###################\n\n";
 
 
         CONST_DIS = 300;
-        start = clock();
-        auto sol_3 = solution_2(ans, l);
-        auto ef_3 = calcEf(sol_3.second.first);
-        cout << endl << endl << ef_3.first << " / " << ef_3.second << endl << endl;
-        //output(sol_0);
-        writeToDB("ans_3", sol_3.second.first);
-        end = clock();
-        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
-        cout << "Time of solution_2 / 300 = " << seconds.back() << endl;
-        cout << "\n###################\n\n";
-
+        
         start = clock();
         fl = true;//без учета детей
         auto sol_4 = solution_1();
@@ -218,6 +212,17 @@ int main() {
         end = clock();
         seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
         cout << "Time of solution_1 / F / 300 = " << seconds.back() << endl;
+        cout << "\n###################\n\n";
+
+        start = clock();
+        auto sol_3 = solution_2(ans, l);
+        auto ef_3 = calcEf(sol_3.second.first);
+        cout << endl << endl << ef_3.first << " / " << ef_3.second << endl << endl;
+        //output(sol_0);
+        writeToDB("ans_6", sol_3.second.first);
+        end = clock();
+        seconds.push_back((double)(end - start) / CLOCKS_PER_SEC);
+        cout << "Time of solution_2 / 300 = " << seconds.back() << endl;        
 
         cout << "\n###################\n\n";
         break;
@@ -322,7 +327,7 @@ int solution_0(map<string, pair<vector<pair<int, int>>, int>>& ans,int&last) {
                 continue;
             }
             else
-                if (ans[it.first].second + all_houses.back().first <= const_count[it.first] * 28) {
+                if (ans[it.first].second + all_houses.back().first <= const_count[it.first] * MAX_CHILDREN) {
                     ans[it.first].first.push_back(all_houses.back());
                     ans[it.first].second += all_houses.back().first;
                     all_houses.pop_back();
@@ -473,7 +478,30 @@ void writeZeroToDB() {
         sql = "INSERT INTO zero (idh) VALUES (" + to_string(it) + ");";
         rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
     }
+    sqlite3_close(db);
+}
 
+void rewriteSchDB() {
+    sqlite3* db;
+    char* zErrMsg = 0;
+    int rc;
+    string sql;
+    string data = "Callback function called";
+    string idh, ids;
+    /* Open database */
+    rc = sqlite3_open(path.c_str(), &db);
+
+    if (rc) {
+        cout << "Can't open database:\n" << sqlite3_errmsg(db);
+        return;
+    }
+    else
+        cout << "Opened database successfully\n";
+    for (const auto& it : const_count) {
+        sql = "UPDATE schools SET limit1 =" + quotesql(to_string(it.second * MIN_CHILDREN) + " - " + to_string(it.second * MAX_CHILDREN)) + "  WHERE id = " + quotesql(it.first);
+        rc = sqlite3_exec(db, sql.c_str(), callback_3, (void*)data.c_str(), &zErrMsg);
+    }
+    sqlite3_close(db);
 }
 
 void writeToDB(const string&name, map<const string, vector<pair<pair<pair<int, int>, vector<string>>, int>>>&ans) {
@@ -531,13 +559,13 @@ pair<int, double> calcEf(const map<const string, vector<pair<pair<pair<int, int>
 }
 
 int calcCountClasses(const int& s) {
-    double upper = s / 25.0, lower = s / 28.0;
+    double upper = double(s) / MIN_CHILDREN, lower = double(s) / MAX_CHILDREN;
     vector<int>ans;
     for (int i = ceil(lower); i <= floor(upper); ++i)
         ans.push_back(i);
     pair<int, int>mmin = { 0,0 };
     for (int i = 0; i < ans.size(); ++i) {
-        int l = ans[i] * 25, u = ans[i] * 28;
+        int l = ans[i] * MIN_CHILDREN, u = ans[i] * MAX_CHILDREN;
         int m = min(s - l, u - s);
         if (mmin.second < m)
             mmin = { i,m };
@@ -571,7 +599,7 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
     bool flag2 = false;
     for (auto it : s_B) {
         ++c;
-        if (it.second > 28 * const_count[it.first]) {
+        if (it.second > MAX_CHILDREN * const_count[it.first]) {
             pair<pair<int, int>, string>min;
             min.first.second = INT_MAX;
             int count = 0;
@@ -597,7 +625,7 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
             sch = min.second;
             return false;
         }
-        else if (it.second < 25 * const_count[it.first]) {
+        else if (it.second < MIN_CHILDREN * const_count[it.first]) {
             pair<pair<int, int>, string>min;
             min.first.second = INT_MAX;
             for (auto it2 : A) {
@@ -612,7 +640,7 @@ bool getH(map<string, int>& s_B, pair<int, string>& h, string& sch, map<const st
                         else
                             children = it3.first.first.second;
                         int new_dis = data_data[it3.second].getDisToSch(it.first);
-                        if (m.second > abs((current - new_dis) * children) && current != new_dis && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second > 25 * const_count[it2.first]))
+                        if (m.second > abs((current - new_dis) * children) && current != new_dis && foo(it3.first.second, it.first) && (s_B[it2.first] - A[it2.first][count].first.first.second > MIN_CHILDREN * const_count[it2.first]))
                             m = { count,abs((current - new_dis) * children) }, flag2 = true;
                         ++count;
                     }
@@ -651,11 +679,10 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
     }
 
 
-    int count_iteration = 0;
-    if(CONST_DIS==0)
-    writeToDB("ans_6", A);
-    else
+    int count_iteration = 0;   
+    if (CONST_DIS == 0)
         writeToDB("ans_7", A);
+
     B = A;
     s_B = s_A;
     pair<int, string>h;
@@ -760,8 +787,8 @@ bool getHs(map<string, int>& s_B, int& h_o, vector<int>& h_in, string& s_o, stri
                 vector<pair<int, int>>list;
                 for (const auto& it3 : A[it4])
                     list.push_back({ it3.first.first.second,it3.second });
-                int lower = s_B[it4] - (28 * const_count[it4]) + children;
-                int upper = (28 * const_count[it.first]) - s_B[it.first] + children;
+                int lower = s_B[it4] - (MAX_CHILDREN * const_count[it4]) + children;
+                int upper = (MAX_CHILDREN * const_count[it.first]) - s_B[it.first] + children;
                 vector<int>tmp2;
                 if (list.empty()) continue;
                 sort(list.begin(), list.end(), [](auto& l, auto& r)->bool {return l.first < r.first; });
@@ -803,14 +830,9 @@ pair<bool, pair<map<const string, vector<pair<pair<pair<int, int>, vector<string
     }
     auto t = calcEf(A);
     //cout << "EF = " << t.first << '\n';
-
-
-    if (CONST_DIS == 0)
-        writeToDB("ans_8", A);
-    else
-        writeToDB("ans_9", A);
-
-
+        
+    writeToDB("ans_8", A);
+    
     B = A;
     s_B = s_A;
 
